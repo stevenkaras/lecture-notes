@@ -1,0 +1,268 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+
+\title{Advanced Algorithms\\\large Lecture 1}
+\date{2016-11-08 \\ Last edited \currenttime\ \today}
+\author{Lecture by Shay Mozes\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Recommended Reading:}
+
+\begin{itemize*}
+\item Introduction to Algorithms, MIT Press (commonly referred to as CLRS)
+\item Others will be mentioned in the slides
+\end{itemize*}
+
+\paragraph{Lecture Videos:}
+
+\begin{itemize*}
+\item \href{http://www.faculty.idc.ac.il/smozes/advancedalgo/2014/index.html}{Videos from 2014}
+\item \href{http://www.faculty.idc.ac.il/smozes/advancedalgo/index.html}{Videos from 2015}
+\item \href{http://www.faculty.idc.ac.il/smozes/advancedalgo/2016/index.html}{Videos from 2016}
+\end{itemize*}
+
+\section{Algorithm Modelling}
+Begin by formalizing the goal. From there we can see what sort of requirements we have, and what restrictions are present (online, streaming, time/size restrictions, approximations, etc). Check literature and references for known algorithms/solutions, and then adapt to our current problem.
+
+\subsection{Algorithm Design Goals}
+
+\begin{enumerate*}
+\item Correctness
+\item Efficiency (time/space/wall time)
+\item Simplicity
+\item Ease of implementation
+\end{enumerate*}
+
+\subsection{Evaluating Algorithms}
+Efficiency is measured using a complexity function:
+$T(n): \mathbb{N} \to \mathbb{N}$ where $T(n)$ is the number of operations the algorithm does on an input of size $n$
+
+\paragraph{}
+We can measure this in several ways:
+
+\begin{enumerate*}
+\item Worst case
+\item Best case
+\item Average case
+\end{enumerate*}
+
+\subsection{RAM Model of Computation}
+
+Each C statement takes 1 time step. Loops and calls are not simple ops. Each memory access takes one time step, and no limitation on memory. For any given problem, the running time is the number of simple operations, and the space is the number of memory cells touched.
+
+\section{Big O Notation}
+
+$f(n) = O(g(n))$ if $c \cdot g(n)$ is upper bound on $f(n)$ iff there exist $c$, $N$ such that for any $n \ge N$, $f(n) \le c \cdot g(n)$
+
+Common complexity classes:
+\begin{itemize*}
+\item $O(n)$
+\item $O(log n)$
+\item $O(2^n)$
+\item $O(n^c)$
+\item $P$
+\item $NP$
+\item $PSPACE$
+\end{itemize*}
+
+In the homework, we'll probably see $O(2^{\sqrt{log n}})$
+
+\section {Graph theory primer}
+A graph is a 2-tuple of vertices and edges: $G=(V,E)$ where $|V| = n$, $|E| = m$
+can have weights (as a $c(e):E\to\mathbb{R}$, can be directed (meaning that an edge has a source and target), can even have multiple edges per vertex pair.
+
+It can be useful to assume there are no cycles in a graph. It's so commonly used, we even call a directed acyclic graph a DAG for short.
+
+\section{Graph search}
+
+\begin{itemize*}
+\item DFS (uses a stack)
+\item BFS (uses a queue)
+\end{itemize*}
+
+For an extra challenge, try changing the BFS on slide 16 to use a stack instead and find a counterexample of a graph for which it does NOT work correctly.
+
+\section{Shortest Path}
+
+\subsection{Single Source}
+Single source: given a source vertex, find the shortest path to any other vertex of G
+
+\begin{description}
+  \item [BFS] unweighted
+  \item [Dijkstra] only for non-negative weights. $O(n^2)$ or $O(m + nlogn)$ with fibonnacci heaps; $O((m+n)nlogn)$ for binary heaps
+  \item [Bellman Ford] arbitrary weights. $O(nm)$
+\end{description}
+
+\subsection{All pair}
+Given a graph, find the shortest path between all pairs of vertices.
+
+\begin{description}
+  \item [Floyd Warshall] $O(n^3)$
+  \item [Johnson] $O(mn + n^2logn)$
+  \item [Williams] $O(\frac{n^3}{2^{\sqrt{logn}}})$
+\end{description}
+
+\section{Minimum Spanning Tree}
+Given a weighted graph, find subset of E that minimizes $\sum{C(e \in E)}$
+
+\paragraph{Kruskal}
+Greedily add lightest edge that doesn't form a cycle. $O(m \log m)$ using basic sorting and Union-Find data structures.
+
+\paragraph{Prim}
+Grow a tree by greedily adding the lightest edge with one endpoint in the tree and one not in the tree. $O(m \log m)$ using binary heap. $O(m + n\log n)$ using Fibonacci heaps.
+
+\paragraph{Boruvka}
+$O(m \log m)$
+
+\section{Max flow}
+Given a DAWG, source and sink, find max flow of network.
+
+\paragraph{st-Cut}
+a subset of $E$ that partitions the graph into non-empty sets $S$ and $T$ where $s \in S$ and $t \in T$. The maximum flow of the network is the minimum of all the st-cut flows.
+
+\section{Induction}
+\begin{enumerate*}
+\item Loop invariants - expression that remains true for all iterations of a loop
+\item Recursion - self-referential function
+\item Recurrences - See lecture video for explanation
+\end{enumerate*}
+
+Given a predicate $P$, $P(k)$ for some $k$ (usually $k=0$). $P(n) \to P(n+1)$ for all $n \ge k$; $P(n) = P(k)$ for all $n \ge k$.
+
+\subsection{Example: Geometric Sequence}
+\[\forall a \ne 1\]
+\[a^0+a^1+...+a^n = \frac{a^{n+1}-1}{a-1}\]
+\[\text{Base: }n=0\text{; }a^0 = \frac{a^{0+1}-1}{a-1}\]
+\[a^0=1=\frac{a^1-1}{a-1}\]
+
+\[\text{Assume: }a^0+a^1+...+a^n=\frac{a^{n+1}-1}{a-1}\]
+\[a^0 + a^1 + ... + a^{n+1} = a^0 + a^1 + ... + a^n + a^{n+1}\]
+\[= \frac{a^{n+1} - 1}{a - 1} + a^{n+1} = \frac{a^{n+1+1} - 1}{a - 1}\]
+
+\subsection{Example: Tiling a floor}
+Tiling problem: given a room of size $2^n$ by $2^n$, tile the room using L-shaped tiles covering 3 units. Also reserve a single tile for a "Logo".
+
+{\it Better explained in the video than I ever could.}
+
+\section{Matching problems}
+Given a set of boys and a set of girls, each with a ranking of all the other sex.
+
+\subsection{What's a good pairing?}
+
+\begin{itemize*}
+\item Maximize total satisfaction
+\item Maximize minimum satisfaction
+\item Maximize maximum difference
+\item Maximize number of people with first choices
+\item No stable pairings - all reasonable solutions must have stability
+\end{itemize*}
+
+\subsection{The roommate problem}
+Given a set of freshman of size $2n$, each with a ranking for who will be their roommate.
+
+Such that:
+\begin{table}[h!]
+  \centering
+  \caption{Roommate preferences}
+  \label{tab:table1}
+  \begin{tabular}{r|c|c|c}
+    Adam & C & B & D\\
+    \hline
+    Bob & A & C & D\\
+    \hline
+    Charlie & B & A & D\\
+    \hline
+    Dave & A & B & C\\
+  \end{tabular}
+\end{table}
+
+With an odd number of cycles, and a single choice at the bottom of the list for everyone else, then there will always be an unstable couple.
+
+\subsection{Traditional marriage algorithm}
+
+\begin{enumerate*}
+\item Each morning, boys go to top girl in their list.
+\item Girl selects highest boy in her list, rejects all others.
+\item Boys remove rejections from list.
+\item Terminate if all boys were selected on same day.
+\end{enumerate*}
+
+\subsection{Trade up lemma}
+If on day $i$ a girl selects a boy $b$, she is guaranteed to marry someone she likes at least as much as $b$.
+
+$\forall k \ge 0$, on day $i+k$ the girl will select a boy she likes as much as $b$.
+
+Base $k=0$: trivially true.
+
+Assume condition is true for $k-1$. Thus she has a boy at least as good as $b$ in the running for day $i+k$.
+
+See formal induction proof on slide 62
+
+\paragraph{Corallary}
+Each girl will marry her absolute favorite among the boys who visited her during TMA.
+
+\subsection{Does TMA always terminate?}
+Either it doesn't specify a next step (i.e. whether the algorithm is well defined), or it might keep going for an infinite number of days.
+
+\paragraph{Proof}
+Each boy can be rejected at most $n-1$ times. This would imply that there are $n$ couples. Assume that Bob is rejected by all the girls, and that some woman Amy, has no proposers when Bob was rejected the last time. By the trade up lemma, Amy was never proposed to, but Bob proposed to everyone, since he was unmatched. In particular, Amy. Therefore, Bob must {\bf not} have been rejected by all the girls.
+
+\subparagraph{}
+Consider a list containing all the boy's preferences of the girls. There are $n$ boys, and each list has $n$ girls in it, giving us a total of $n^2$ girls names in the list. Each day, there is at least one boy who gets rejected, so at least one girl gets crossed off this list. Therefore, the number of days is bound by the original size of the list.
+
+\paragraph{}
+Now that we've proven it always terminates, is it stable?
+We'll use the trade up lemma as the definition of stable (proof by contradiction):
+
+Given two couples, Alice and Bob, Claire and Dave. Now suppose that Bob prefers Claire over Alice, and Claire prefers Bob over Dave (aka a rogue couple). By this, Bob must have visited Claire earlier than Alice, which would imply that Claire rejected him. As such, this contradicts the trade-up lemma, because Claire chose Luke over Bob. Therefore, Bob and Claire cannot be a rogue couple.
+
+\subsection{Optimality}
+Is this optimal for everyone, or does it prefer one sex?
+
+\begin{description}
+  \item[optimal:] highest ranking spouse they could receive in a stable matching.
+  \item[pessimal:] lowest ranking spouse they could receive in a stable matching.
+\end{description}
+
+A matching is male-optimal if every boy receives his optimal spouse. A matching is male-pessimal if every boy receives his pessimal spouse. 
+
+TMA is male-optimal and female-pessimal.
+
+\paragraph{Proof}
+Suppose that some boy gets rejected by his optimal girl in TMA.
+For example, given Bob is the first boy rejected by his optimal girl Mia. She selected Luke instead.
+This leads to Bob and Mia are an unstable couple, contradicting the existence of a stable match where Mia is the optimal spouse for Bob.
+
+Given a stable match $S$ where Alice does worse than in $T$.
+Let Luke be her spouse in $T$.
+Alice likes Luke better than her spouse in $S$.
+$T$ is male-optimal, so Luke likes Alice better than his spouse in $S$.
+Therefore, $S$ is not stable, and as such, $T$ is female-pessimal.
+
+We did not discuss implemention in $O(n^2)$.
+
+\end{document}
