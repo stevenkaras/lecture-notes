@@ -1,14 +1,30 @@
 \documentclass[a4paper]{article}
 
-\title{Advanced Data Structures}
-\date{2016-11-10}
-\author{Lecture by Dr. Shay Mozes\\Typeset by Steven Karas}
-
 \usepackage[T5]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{amsfonts}
 \usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
 \usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+
+\title{Advanced Data Structures\\\large Lecture 1}
+\date{2016-11-10 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Shay Mozes\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
 
 \begin{document}
 
@@ -101,7 +117,6 @@ Given that $worst(op)=$ the $\max$ time of all possible cases of an operation $o
 In other words, amortized bounds is a bound on the amortized time for each operation.
 
 \subsection{Aggregate method}
-
 Direct computation of the amortized complexity using the above definitions.
 
 \subsection{Accounting method}
@@ -118,9 +133,9 @@ Rather than associating a cost to each operation, we assign a budget/cost to eac
 
 \[\sum_{i=1}^mamort(op_i)=\sum_{i=1}^mtime(op_i)+\sum_{i=1}^m\phi(D_i)-\sum_{i=1}^m\phi(D_{i-1})\]
 \[=\sum_{i=1}^mtime(op_i)+\phi(D_m)-\phi(D_0)\]
-\[\sum_{i=1}^mamort(op_i)\ge\sum_{i=1}^mtime(op_i)\]
 \[\phi(D_i)\ge0\]
 \[\phi(D_0)=0\]
+\[\sum_{i=1}^mamort(op_i) \ge \sum_{i=1}^mtime(op_i)\]
 
 \paragraph{Binary counter example}
 Using a binary counter, we define $\phi(D)=\text{the number of 1s in the counter}$\footnote{It's important to define the potential function carefully for proofs using this method}. For some sequence $t_i$ of subsequent 1s at the beginning of the counter, then $amort(op_i)=t_i+1+1-t_i=2$ where $time(op_i)=t_i+1$ and $\Delta\phi=1-t_i$.
@@ -140,7 +155,7 @@ amort(op_i)=
 Trivially, we can show that deletion takes $O(1)$ time. However, we need to show that this doesn't interfere with the original proof. We can do this by binding $\phi(D_i)$ to 0 in cases where the array is more than half empty. This changes the amortized cost of a regular addition to $\phi(D_i)\le3$.
 
 \[amort(delete_i)=1\]
-%\[amort(delete_i)=1+n_i-e_i-(n_i+1-(e_i-1))=-1\]
+% \[amort(delete_i)=1+n_i-e_i-(n_i+1-(e_i-1))=-1\]
 
 \section{Next week}
 

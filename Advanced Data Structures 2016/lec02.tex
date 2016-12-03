@@ -1,16 +1,31 @@
 \documentclass[a4paper]{article}
 
-\title{Advanced Data Structures}
-\date{2016-11-17}
-\author{Lecture by Dr. Shay Mozes\\Typeset by Steven Karas}
-
 \usepackage[T5]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{amsfonts}
 \usepackage{mathtools}
+\usepackage[iso]{datetime}
 \usepackage{tabu}
-\usepackage{hyperref}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
 \usepackage{listings}
+
+\title{Advanced Data Structures\\\large Lecture 2}
+\date{2016-11-17 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Shay Mozes\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
 
 \begin{document}
 
@@ -130,12 +145,13 @@ A binomial tree is defined recursively as a tree of binary trees.
 
 \paragraph{}
 
-\begin{itemize}
+\begin{itemize*}
 \item Number of nodes = $2^k$
 \item Height = $k$
 \item Degree of root = $k$
 \item Deleting root yields k binomial trees $B_0,...,B_{k-1}$
-\end{itemize}
+\end{itemize*}
+
 
 \subsection{Binomial Heaps}
 List of binomial trees that satisfy heap property. 0 or 1 
@@ -166,6 +182,7 @@ $O(\log n)$
 
 \paragraph{Amortized Complexity}
 $O(1)$ as per a binary counter from last week.
+
 
 \subsection{Fibonacci Heaps}
 
@@ -215,20 +232,23 @@ $\phi'(H)=t(H)+2m(H)$ where $m(H)=\text{number of marked nodes}$ and $t(H)=\text
 
 \[amort(\text{Decrease-Key})=c+c+2(-c+1)=O(1)\]
 
-where c is the number of splices performed.
+where $c$ is the number of splices performed.
 
-\paragraph{Proof}
-The degree of the ith child in a binomial tree is of degree i.
-let v be a node with k children
-y1...yk
+\subparagraph{Proof}
+Let $v$ be a node in a binomial tree of degree $k$ with children $y_1,...,y_k$, ordered by insertion order. We want to show that for any $i \ge 2$, the degree of $y_i$ is at least 2.
 
+Before $y_i$ was attached as a child of $v$, they have the same degree, meaning that $y_i$ has $i-1$ children at that moment. Since then, $y_i$ has lost at most 1 child.
+
+\paragraph{}
 Let $S_k$ be the minimal size of a tree of degree $k$. Note that $S_0=1$, and $S_1\ge2$.
 
 \[S_k=2+S_0+S_1+...+S_{k-2}\]
 
 Note that:
 
-\[S_k \ge F_k=F_{k-1}+F_{k-2} \ge \phi^k \]
+\[ S_k \ge F_k=F_{k-1}+F_{k-2} \ge \phi^k \]
+
+where $\phi=\frac{1+\sqrt5}{2}=$ is the root of $x^2-x-1=0$, which because of its connection to Fibonacci is where this heap gets it name from.
 
 The remainder of the proof is in the video, and Shay does a better job of it than I do.
 
