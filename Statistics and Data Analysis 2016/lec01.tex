@@ -1,0 +1,171 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+
+\title{Statistics and Data Analysis\\\large Lecture 1}
+\date{2016-11-06 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Zohar Yakhini\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\begin{document}
+
+\maketitle
+
+NOTE: I arrived late due to traffic, and missed the first 15 minutes.
+
+\section{Simpsons Paradox}
+Not really a paradox, but two/three different ways of describing the truth. For example, look at freethrow shots in basketball:
+
+\begin{tabu} to \linewidth{|r|c|c|c|c|}
+\hline
+& <1.7m & 1.7-1.9 & >1.9 & Total \\
+\hline
+Women & 4/6 & 4/6 & 8/9 & 16/21 \\
+\hline
+Men & 1/2 & 1/2 & 23/27 & 25/31 \\
+\hline
+\end{tabu}
+
+The women beat the men in each category, yet overall they are worse.
+
+\section{Administrative}
+Tuesday 1830-2100, 15 minutes break.
+13 week semester including recitation.
+Office hours monday 10-12 (C.121).
+zohar.yakhini@idc.ac.il or zohar.yakhini@gmail.com.
+4 homeworks including theoretical and practical on weeks 2,4,7,10.
+Homework due after two weeks.
+Each HW worth 18 points.
+Exam worth 28 points.
+Individual work unless stated otherwise.
+Any language acceptable.
+
+Matlab licenses may be available through IDC. GNU Octave is a popular alternative. Python with Scipy/Numpy/Pandas is also possible.
+
+\section{Syllabus}
+
+\begin{enumerate*}
+\item Intro and review of probability theory
+\item Distribution functions
+\item Statistical independence
+\item Data presentation/visualization
+\item Binomial distribution and Central Limit Theorem
+\item Statistical inference, confidence intervals, p-values, hypothesis testing
+\item Correlation measures
+\item Hypergeometric distribution
+\item Ranked lists, Wilcoxon rank sum, mHG
+\item Multiple testing, Bonferroni, and FDR corrections
+\item Entropy and information theory, KL and distribution distances
+\end{enumerate*}
+
+\section{Probability theory and statistics}
+Probability: given a model, what should we expect to observe?
+Statistics: given observations, what can we infer about the model?
+
+\subsection{Random Variables}
+Random variable maps from the sample space to some number.
+
+\subsection{Probability Distribution Functions}
+Describes the values a RV can take on, and it's corresponding probability, or density.\footnote{Scipy refers to these as Probability Mass Functions for discrete distributions, and Probability Density Functions for continuous distributions}
+
+\begin{description}
+  \item[Discrete PDFs:] $p(x)=P(X=x)$. Assigns the probability that a given discrete value will be observed.
+  \item[Continuous PDFs:] $P(X\in I)=\int_I f(x)dx$, where the function itself is $f(x)$.
+  \item[Cumulative distribution function:] $F(x)=P(X\le x)$
+\end{description}
+
+All probability distribution functions should sum or integrate to 1\marginpar{$\sum\limits_{x\in X}p(x)=1$}.
+
+\paragraph{}
+Given two fair six sided dice, each combination of events has discrete probability $\frac{1}{36}$.
+
+\subsubsection{Mean}
+Aka expected value, but that's a bad name. This is the weighted average value of a RV: $E(X)=\mu=\sum\limits_{x\in X} x p(x)$.
+
+\subsubsection{Variance}
+Average squared deviation between realization of a RV (or PDF) and its mean.\footnote{full derivation on slide 22}
+
+\[V(X)=\sigma^2=E[(X-E(X))^2]=E[X^2]-E[X]^2\]
+
+\subsubsection{Standard Deviation}
+$\sigma$. If you were to observe a RV, it would be more or less this far away from the mean.
+
+\subsubsection{Linearity}
+Linearity is defined as $g(X)=aX+b$ for some constant values $a,b$.
+
+\paragraph{Mean}
+\[E[aX+b]=\sum_{x\in X} (ax + b)p(x)\]
+\[=a\sum_{x\in X} xp(x)+b\sum_{x\in X} p(x)=a\mu+b\]
+
+\paragraph{Variance}
+\[V[aX+b]=\sum_{x\in X} \left( (ax+b) - (a\mu + b) \right)^2 p(x)\]
+\[=a^2\sum_{x\in X} (x-\mu)^2 p(y) = a^2\sigma^2 \]
+
+\paragraph{Standard Deviation}
+\[\sigma_{aX+b}=|a|\sigma\]
+
+Moreover, the sum of linear mean functions is also linear: $E(X + Y)=E(X) + E(Y)$
+
+\subsubsection{Coeffecient of Variance}
+$CV(X)=\frac{\sigma}{\mu}$. More or less the confidence that an observation is close to the mean.
+
+\subsubsection{Mode}
+Most frequently observed RV value. $\max(y\in Y)$
+
+\subsubsection{Tchebysheff's theorem}
+Suppose $Y$ is any random variable with mean $\mu$ and stddev $\sigma$. Thus: $P(\mu-b\sigma\le Y\le \mu+b\sigma)\ge 1-(\frac{1}{b^2})$ for all $b > 0$. Colloquially, the likelihood of a RV to be within some distance of its mean is strictly bound by some constant multiple of the stddev.
+
+\paragraph{Proof}
+Remember that $V=Var(X)=E[(X-\mu)^2]$. We want to consider specifically values within some distance of the mean. Because they must have greater variance, we relax the equivalence as such: $V\ge b^2P(|X-\mu|\ge b)$. By limiting our sample space to those within distance $b$, we can replace $x$ by $b$ with the same equivalence as previously: $\sum xp(x) \ge b^2 \sum p(x)$.
+$P(|X-\mu|\ge b) \le \frac{V}{b^2}$ which implies
+$P(|X-\mu|\ge b\cdot t) \le \frac{1}{t^2}$ for some $t$.
+
+\section{Common Distributions}
+
+\subsection{Discrete Uniform Distribution}
+Rolling a single fair six sided die, flipping a coin, etc.
+
+\[f(x)=\frac{1}{b-(a-1)} \quad a \le x \le b\]
+Details on slide 28.
+
+\subsection{Bernoulli Distribution}
+Trial with binary outcome. Details on slide 29. Coin tossing, etc.
+
+\paragraph{Binomial experiment}
+Repetitions of n identical, independent Bernoulli trials. $p$ is constant for each trial. Takes two parameters: number of trials and p: $P(Y=k) = \binom{n}{k}p^k(1-p)^{n-k}$. It's important to note that $\sum\limits^n_kP(Y=k)=1$.
+
+\[2^n=\sum\limits_{k=0}^n\binom{n}{k}1^k\cdot 1^{n-k}\]
+\[(x+y)^n=\sum\limits_{k=0}^n\binom{n}{k}x^k\cdot y^{n-k}\]
+
+\paragraph{Mean}
+Linear expectations is quick way to prove $E(n,p)=n\cdot p$
+
+\paragraph{Variance}
+See slides. Linear properties makes proof easy
+
+\paragraph{Standard deviation}
+see slides. Linear properties makes proof easy
+
+\section{p values}
+Given a trial, the p value is the probability of the null hypothesis giving the result of the trial. This can be hacked in many ways.
+
+\end{document}
