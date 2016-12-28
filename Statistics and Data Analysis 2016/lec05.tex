@@ -1,0 +1,209 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+
+\title{Statistics and Data Analysis\\\large Lecture 5}
+\date{2016-12-06 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Zohar Yakhini\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\newcommand{\mean}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Agenda}
+\begin{itemize*}
+  \item Matlab intro
+  \item HWA1 - Solution
+  \item Class:Gauss, Inference, Central Limit Theorem
+  \item HWA2 - Comments
+\end{itemize*}
+
+\section{Homework}
+
+\subsection{Problem 1}
+This is a binomial distribution. If we change the question to extend towards finding not one but more defective products, we want to find the $P(X\ge 3)$.
+
+\subsection{Problem 3}
+Example of solution where $E(X)=6$ and $E(Y)=7$:
+
+\[X=\begin{cases}5 & \sim P(0.5) \\ 7 & \sim P(0.5)\end{cases}\]
+\[Y=
+\begin{cases}
+  X=5 &
+  \begin{cases}
+    \frac{41}{5} & \sim P(0.5) \\
+    \frac{43}{5} & \sim P(0.5)
+  \end{cases}\\
+  X=7 &
+  \begin{cases}
+    \frac{41}{7} & \sim P(0.5) \\
+    \frac{43}{7} & \sim P(0.5)
+  \end{cases}\\
+\end{cases}
+\]
+
+Note that $P(x,y)\ne P(x)P(y)$.
+
+\paragraph{Birthday paradox}
+\[
+P(\text{all unique}) =
+P\left(
+  \parbox{5em}{the $i$th is different from the $i-1$} \middle|
+  \parbox{4em}{$i-1$ are different}
+\right)=
+\sum_{i=1}^{k} \left(1-\frac{i-1}{365}\right)
+\]
+
+\subsection{Problem 2}
+
+\[Cost(k)=\text{Represents the cost of one night @$k$ tokens}\]
+
+\[
+E(Cost(k))=\frac{C}{365}\cdot k + \sum_{i=k+1}^{\infty} Poi(3,i)(i-k)\frac{C}{150}
+\]
+\[=\frac{C}{365}\cdot k-\frac{C}{150}\cdot k \underbrace{\sum_{i=k+1}^{\infty} Poi(3,1)}_{1-CDFPoi(3,k)} + \frac{C}{150}\sum_{i=k+1}^{\infty} i \cdot Poi(3,i)\]
+\[E-\sum_{i=0}^{k}i\cdot Poi(3,i)\]
+
+\subsubsection{Part 2}
+\[\frac{c}{23} k - \frac{c}{20} k \sum_{i=4k+1}^{\infty} Poi(3000, i)\]
+\[(1-CDFPoi(3000,i))\]
+\[E-\sum_{i=0}^{4k}i\cdot Poi(3000, i)\]
+
+\subsection{Problem}
+
+\[\sum_{i=0}^{n} \binom{n}{k} i^2 p^i (1-p)^{n-i}=\underbrace{np(1-p)}_{V(X)}+\underbrace{(np)^2}_{E(X)^2}\]
+
+He said that moving from what was written in the homework to what he wrote on the board is simple algebra, also noting that $E(X^2)-(E(X))^2$ is the definition of the left side.
+
+\paragraph{Extra}
+Change the $i^2$ to $i^4$.
+
+\section{Matlab}
+
+\begin{itemize*}
+  \item All IDC computer labs have Matlab installed
+  \item In MyIDC > IDCApps
+  \item 65 USD for student license
+\end{itemize*}
+
+
+\paragraph{gmdistribution}
+gmdistribution is a 
+
+\[f_Y(t)=\sum_{i=1}^{k} w_i f_{X_i}(t) \text{ where } X_i \sim N(\mu_i,\delta_i^2)\]
+\[F_Y(t)=\sum_{i=1}^k w_i F_{X_i}(t)\]
+
+\section{Central Limit Theorem}
+Let $X_1,...,X_n$ be random variables sampled independently from the same distribution with mean $\mu$ and nonzero variance $\sigma^2$. Let $\mean{X_n}$ be the average of $X_1,...,X_n$.
+
+\[\lim_{n\to\infty} \left( \frac{\sqrt{n}}{\sigma} (\mean{X_n}-\mu) \le x \right)=\Phi(x)\]
+
+Where $\Phi(x)$ is the standard normal density function.
+
+% TODO: fill in board stuff from video
+
+\paragraph{Intuition}
+For almost any distribution, if we sample it enough, the average distance of our samples from the mean is normally distributed.
+
+\subsection{Example}
+Let $X\sim U[0,1]$. Assume that we drew $n=12$ samples.
+
+\paragraph{}
+What is $P\left( |\mean{X_n} - \frac{1}{2}| \le 0.1 \right)$? One way is to compute the distribution of $\mean{X_n}$. Much easier is to use the CLT as such:
+
+For $U\sim U([0,1])$, we get $E(U)=\frac{1}{2}$ and $Var(U)=\frac{1}{12}$. Assuming that $n=12$ is large enough, we use the CLT:
+
+% TODO: fill in from slide 3.
+
+\subsection{Sum of Poissons}
+Recall that the sum of Poissons is Poisson. Therefore, when $\lambda$ is sufficiently large, we can write $Poi(\lambda)$ as the sum of $\lambda$ independent copies of $Poi(1)$.
+
+\paragraph{Example}
+\[Poi(3000)=\sum_{i=0}^{3000}\bar X_i\]
+
+\[\frac{n\mean{X_n}-n\mu}{\sqrt{n}\sigma} \sim N(0,1)\]
+
+\[CDFPoi(3000,3017) \sim \Phi\left(\frac{3017-3000}{\sqrt{3000}}\right)\]
+
+\subsection{Confidence Intervals}
+Given a "fair" coin that is tossed 100 times, and turns up heads 61 times. What is the probability of this event? Can we believe the "fairness" of the coin?
+
+\paragraph{Using CLT:}
+\[P\left( \frac{\sqrt{100}}{0.5} (\mean{X_{100}}-0.5) \le x \right) \cong \Phi(x)\]
+\[P\left((\mean{X_{100}}-0.5) \le \frac{x}{20}\right) \cong \Phi(x)\]
+\[P((\mean{X_{100}}- 0.5) \le 0.11) \cong \Phi(2.2)\]
+
+Thus, the probability of a fair coin landing heads more than 60 times is $~0.023$ and we can decide if we want to trust the coin, or if we reject the null model. It's important to remember that the null model has several components:
+
+\begin{itemize*}
+  \item The coin is fair
+  \item The same coin was tossed 100 times
+  \item The tosses are independent of each other
+\end{itemize*}
+
+\paragraph{Continuing}
+What if the coin turned up heads 54 times? We get this is $>0.15$.
+
+\paragraph{Defn}
+Given a predetermined desired confidence level, we can find a range around $\mu$, such that if we observe a sample outside this range, we should reject the null model. It is sometimes used in the inverse, by virtually rejecting all other options.
+
+\subsubsection{Example: Cholesterol Levels}
+In a survey in the early 2010s, the US HRSA found that the mean total cholesterol (TCh) level for males aged 20 and over is 211 mg/dL and the stddev is 46 mg/dL.
+
+We are sampling 25 individuals in some specific hospital for performing a healthcare experiment. We measure the sample mean for TCh in this population and want to test whether TCh might be a confounding variable. We will reject the null hypothesis if the sampel mean falls outside an interval around $\mu=211$ where it should fall in 90\% of all cases.
+We use the CLT to compute the interval such that:
+\[P((\mean{X_{25}}-211) \le 9.2x)\cong\Phi(x)=0.95\]
+We check our tables to get that $x$ is around 1.65. Thus:
+\[15.2 \le (\mean{X_{25}}-211)\le 1.65\cdot 9.2=15.2\]
+
+This gives us a confidence interval of $(196,226)$\footnote{In scipy: `norm.interval(0.9, loc=211, scale=46/math.sqrt(25)'} for rejecting the null hypothesis.
+
+\subsection{Gene Regulation}
+% TODO: fill in from video and slides
+
+\subsection{Internet CTR}
+Checking success of a banner ad. First, we assume clicks are independent.
+
+% TODO: fill in from slides/video
+
+\subsubsection{A}
+If we repeat experiments in which 
+\subsubsection{B}
+
+\section{Log Normal Distribution}
+A random variable $Y$ is said to have a log-normal distribution if its log has a normal guassian distribution.
+
+$Y=e^{\mu+\sigma Z}$ where $Z$ is the standard normal.
+
+Log-Normals are useful for intrinsically positive quantities. Note that the mean, median, and mode are all different, and the distribution has a heavy tail.
+
+\section{Homework 2}
+Due December 17th.
+
+\subsection{Problem 3}
+Let $X_0 \sim U\{-5,...,5\}$.\footnote{"Same as $X_0$" means resample}
+
+
+\end{document}

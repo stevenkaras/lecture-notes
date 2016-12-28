@@ -1,0 +1,195 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+
+\title{Statistics and Data Analysis\\\large Lecture 6}
+\date{2016-12-13 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Zohar Yakhini\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\newcommand{\mean}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+
+\begin{document}
+
+\maketitle
+
+\section{Clarifications on HW2}
+
+In the first question, we should normalize the histograms when plotting them. Notably, we should also produce multiple histograms on the same graph (per category). It is strongly recommended to not produce an overlapping histogram (as produced by matplotlib, R, etc by default).
+
+In step 4 of the same slide, the intent is to produce a graph that shows the relation. He mentioned QQ plots.
+
+We will cover what a normal approximation is today.
+
+\section{Agenda}
+
+\begin{enumerate*}
+  \item Inference - comparing two normal distributions and t-test
+  \item Lognormal distributions
+  \item Correlations
+\end{enumerate*}
+
+\section{Inference}
+
+\subsection{p-value}
+The p-value of an observation of a statistical quantity Q on actual data (empirical mean, max, \%iles, etc) under a given Null model is the probability that, drawing instances from the Null model and computing Q for the randomly drawn data, the result would be the same as or more extreme than the given observed result.
+
+For example, a coin that turns up heads 61 times out of 100 gives us a p-value of 0.023 that the coin is fair.
+In even more direct terms, it is important to note that we only ever reject previous models, and propose a new one (which is not actually tested).
+
+\subsection{Empirical std}
+
+\[
+\mean{\sigma_n}=\left( \frac{1}{n}\sum_{i=1}^{n}(x_i-\mean{X_n}) \right)
+\]
+
+\subsection{Pay rates in randomistan}
+
+$emp\mu_M=1394$ and $emp\sigma_M=138$.
+$emp\mu_F=1324$ and $emp\sigma_F=105$.
+
+\paragraph{A Useful Fact}
+If $X \sim N(\mu, \sigma)$, then $Z=(X-\mu)/\sigma$ is a standard normal random variable.
+
+To example the differences in pay, we need to know more about the size of the sample. Lets first see if we can say that $\mu(M)>\mu(F)$. Let's assume the sample size was large, and all samples were independent. As such:
+
+\[\frac{emp\mu M-\mu(M)}{emp\sigma(M)/n_M^{1/2}} \sim N(0,1)\]
+\[\frac{emp\mu F-\mu(F)}{emp\sigma(F)/n_F^{1/2}} \sim N(0,1)\]
+
+If $\mu(M)=\mu(F)$, then:
+
+\[emp\mu M-emp\mu F \sim N(0, \frac{1}{N}(emp\sigma^2(M)+emp\sigma^2(F)))\]
+
+If $n=100$, then $\Phi(10 \frac{70}{173})\le 10^{-4}$. If $n=12$, then $\Phi(\sqrt{12}\frac{70}{173}) \cong 0.08$.
+
+\subsection{Student t-distribution}
+
+Takes a parameter called "degrees of freedom". Not covered in the course. We may see Welch's t-test in a later lecture. Useful for small sample sizes ($n < 20$).
+
+\subsection{Normal approximation/fitting}
+
+A procedure for selecting a distribution that best fits a set of observed data; Aims to find the distribution that best describes the data I've observed.
+
+Key questions:
+How do we evaluate the fit?
+How do we compare between two models?
+
+We will only attempt to search in the family of normal distributions and their composition.
+
+We want to find the empirical mean and std of the observed data.
+
+\section{Lognormal distribution}
+
+A random variable $X$ is siad to have a lognormal distribution if its log, $\log(X) \sim N$. In other words, $X$ is lognormal if $X=e^Y$ for some Gaussian $Y$; That is that $X=e^{\mu+\sigma Z}$, where Z is the standard normal. $\mu$ is referred to as the location and $\sigma$ is the scale of X. However, they are \textbf{not} the mean or std of X, but rather that of $\log X$.
+
+\subsection{PDF}
+
+Let X be a standard lognormal random variable. Let $F(x)$ be the CDF, and $f(x)$ be the PDF of the standard lognormal.
+Let Y be standard normal and $\Gamma(x)$ be the CDF, and $\gamma(x)$ be the PDF of the standard normal.
+
+\[F(x)=P(X\le x)=P(e^Y \le x)=P(Y \le \ln x)=\Gamma(\ln x)\]
+
+Therefore, since the PDF is the derivative of the CDF, we get that:
+
+\[f(x)=F'(x)=\Gamma'(\ln x)\frac{1}{x}=\gamma(\ln x)\frac{1}{x}\]
+
+\subsection{Median}
+
+$e^\mu$
+
+\subsection{Mean}
+
+% TODO: fill in from video/slide 17
+
+\subsection{Mode}
+
+The mode is the maximum of the PDF. So take the derivative of the PDF:
+
+\[f(x)=e^{-\frac{\ln x^2}{2}}\]
+\[f'(x)=-\frac{1}{x^2}e^{-\frac{\ln x^2}{2}} - \frac{1}{x}e^{-\frac{\ln x^2}{2}}\]
+
+% TODO: fill in from video...I can't track what he's writing
+
+\[e^{-\frac{\ln x^2}{2}} \left( -\frac{1}{x^2}-\ln x \frac{1}{x^2} \right)\]
+\[\ln x + 1 = 0 \Rightarrow x_0=e^{-1}\cong 0.37 \]
+
+Generally speaking, the mode is at:
+
+\[e^{\mu - \lambda^2}\]
+
+\subsection{Products of Normals}
+
+Let $X_i \sim U\{1,...,n\}$. We saw that $\sum n=\sum X_i \sim N(3.5n, 2.9n)$.
+
+\[\ln \prod n=\sum_{i=1}^{n} \ln X_i\]
+
+Because $X_i$ are independent and distributed identically, so are the logs and assuming that n is sufficiently large, then it follows that.
+
+% TODO: slide 18
+
+\subsection{Example: Stock prices}
+Given the prices of a stock at time 0 as $C(0)$. Generally, denote at time $t$ the price as $C(t)$. We want to assess the distribution of its future price $C(10)$.
+
+Break the interval from 0 to 10 into 1000 intervals. Let $B_k=C(0.01k)$. We want to model $B_{1000}$.
+
+\[B_{1000}=\frac{B_{1000}}{B_{999}}...\frac{B_{k+1}}{B_{k}}...\frac{B_1}{B_0} \cdot C(0)\]
+\[ R_k=\frac{B_k}{B_{k-1}} \]
+
+Assume that the ratios are independent and identically distributed. Therefore we apply CLT and get:
+
+\[B_k=R_k\cdot...\cdot R_1\]
+\[\ln B_k=\sum_{i=1}^{k} \ln R_i \quad \ln R_i \sim N(\mu, \sigma)\]
+\[\ln B_k \sim N(\mu\cdot k, \sigma^2 k)\]
+
+\paragraph{Concrete example}
+Assuming that stock growth has a one hour growth distribution with $\mu=0.001$ and $\sigma=0.01$, what is the probability of the stock more than doubling itself in 10 days of 8 hours market trading?
+
+% TODO: slide 21
+
+% double = 0.12?
+% half = 0.07?
+% lognorm.cdf(0.5, 1, loc=0.001*80, scale=0.01 * math.sqrt(80)) gets something close, but not quite
+% lognorm.cdf(0.5, 1, loc=0.001, scale=0.01 * math.sqrt(80))
+
+\subsection{Example: Gene expression levels}
+
+Not really sure what he wants to show here. Maybe just another example?
+
+\section{Correlations}
+
+Measure of relation between two variables. May cover the formal definition next week.
+
+\subsection{Pearson}
+
+\subsection{Covariance}
+
+\[Cov(X,Y)=E[(X-E(X))(Y-E(Y))]\]
+\[Cov(X,Y)=E(XY)-E(X)E(Y)\]
+
+\[\rho(X,Y)=\frac{Cov(X,Y)}{\sigma(X)\sigma(Y)}\]
+
+\[empCov=\frac{\sum Cov(X,Y)}{N-1}\]
+\[\rho = \frac{Cov_{XY}}{\sigma_X \sigma_Y}\]
+
+
+
+\end{document}

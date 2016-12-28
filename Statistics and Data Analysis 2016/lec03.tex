@@ -1,0 +1,98 @@
+\documentclass[a4paper]{article}
+
+\title{Statistics and Data Analysis}
+\date{2016-11-22}
+\author{Lecture by Dr. Zohar Yakhini\\Typeset by Steven Karas}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{tabu}
+
+\begin{document}
+
+\maketitle
+
+\section{Data Visualization}
+The goal of visualization is to make large datasets coherent, and support visual comparison of the data. Each of these has visual examples in the lecture slides.
+
+\subsection{Histograms}
+Split data into bins, draw on two axes. Labeling, axis range is important to mark. Bin height/length is also important to mark if bins are categorical. Note that histograms specifically represent the distribution, so they {\bf must} sum to 1. Bin size is extremely important, because overly summarized data hides complexity, and overly binned data hides patterns.
+
+\subsection{Density Plots}
+Density plots smooth out the bins. Can be done by fitting a spline over the bins.
+
+\subsection{Pie chart}
+Can be useful for categorical bins, but horrible for distributions. Less than useful for comparing data, especially if it's in different pie charts.
+
+\subsection{Bar diagrams}
+Error bars.
+
+\subsection{CDF plot}
+Cumulative distribution function. Good for showing various relationships, and overall risk.
+
+\subsection{Scatter plot}
+Show relationships, non-linear patterns within the data. Good for sussing out correlation. 3 data axes can be represented using a 3D plot, or by including color/size as an additional axes.
+
+\paragraph{Correlation is not Causation}
+Can't believe I need to write this. Just because two random variables are dependent does not imply any causality between them.
+
+\subsubsection{Quantile-Quantile plot}
+Type of scatter plot. Loop over data, plot marks w.r.t. the quantile of each distribution. I did not understand what he just said. His chart has confusing axes, and we've been doing this for too long.
+
+\paragraph{Moth longevity}
+Step appearance of data implies methodology issues/sampling bias.
+
+\subsubsection{Monotonicity}
+A plot of the points $(x_i, y_i)$ for $i=1,...,n$ is called monotone if $x_i <= x_j$ implies that $y_i <= y_j$. Not all scatter plots are monotone, but QQ plots are.
+
+\subsection{Maximal Information Coefficient}
+from slide 30,31
+
+\subsection{Heatmaps}
+
+\subsection{Box plots}
+Graph box around 25\% to 75\% quantiles, mark median, circle mean, with "whiskers". The whiskers can represent many things, such as the min/max, the 10/90\% quantiles, or something like $3Q + 1.5IQR$. Outliers can be marked directly, but aren't always.
+
+\subsection{Violin Plots}
+Similar to box plot, but plot the distribution instead of the box. Quartiles are marked with dashed lines. See example on slide 37. Two categories can be grafted as two halves of a "violin", for easy comparison.
+
+\section{Continuous Probability Distributions}
+A continuous random variable can assume any value in an interval in a collection of intervals (The reals is one such collection, and most common). It's impossible to say that the probability of a random variable gets a particular value. Instead, we refer to the probability of a random variable lying within a given interval.
+
+\subsection{Uniform Distribution}
+A random variable is uniformly distributed if the probability is proportional to the length of the interval.
+
+\[
+f(x)=
+\begin{cases}
+\frac{1}{b-a} & \text{for }a\le x\le b \\
+0 & \text{else}
+\end{cases}
+\]
+
+\[E(X)=\frac{a+b}{2}\]
+
+\[Var(X)=\frac{(b-a)^2}{12}\]
+
+\[E(X)=\sum_x xP(x)=\int_{-\infty}^\infty xf(x)dx\]
+
+% TODO: Copy general formulas from whiteboard
+
+\paragraph{Example: HTTP requests}
+% TODO: fill in from slide 44
+
+\subsection{Cumulative Distribution Function}
+
+\[F(x)=\int_{-\infty}^x f(t)dt\]
+
+% TODO: copy from slide 45
+
+\paragraph{Empirical}
+The empirical CDF is a step function.
+
+\paragraph{NEXT WEEK}
+central limit theorem
+
+\end{document}
