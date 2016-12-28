@@ -1,0 +1,181 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+\usepackage{listings}
+
+\title{Advanced Data Structures\\\large Lecture 6}
+\date{2016-12-15 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Shay Mozes\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\begin{document}
+
+\maketitle
+
+Two "equation sheets" for exam.
+
+\section{Competitive Analysis}
+Competitive Analysis compares our algorithm against one that has perfect knowledge. Is used in the Advanced Algorithms course to evaluate online algorithms.
+
+\begin{description}
+  \item[Worst case] $\Theta(n)$
+  \item[Average case] Access each element with uniform probability. $\Theta(n)$
+  \item[Stochastic] Access each element $i$ with probability $p_i$ such that $p_1 \ge p_2 \ge ... \ge p_n$. $\sum_{i=1}^n i\cdot p_i$. In practical terms, the probability each element is accessed is known to us.
+  \item[Static] Sequence of queries $\sigma=x_1,...,x_m$. Define $f_i$ be the number of queries for element $i$. However, the data structure cannot be changed at runtime.
+  \item[Dynamic] We are allowed to change the order of the list at runtime. The dynamic optimal solution is the most efficient solution given the order of queries.
+\end{description}
+
+\paragraph{Sleator Trajan Cost Model}
+When we serach for the element $x$ in the place $i$, we pay $i$.
+To move the element $x$ earlier in the list is free.
+Switching between neighbors costs us 1.
+
+\section{Self Balancing Linked Lists}
+A list of $n$ elements $1,2,...,n$. 
+
+\paragraph{Static Optimal}
+An static optimal strategy is to order the elements by $f_i$ descending.
+
+\subsection{Access}
+Walk the list to find the element.
+
+\paragraph{Possible strategies}
+\begin{description}
+  \item[Move to Front] Move each element to the front when accessed.
+  \item[Transpose] Promote by 1 on each access.
+  \item[Frequency Count] Each time an element is accessed.
+\end{description}
+
+An algorithm $A$ is $k$-competitive, if there is a $b$ such that any sequence $\sigma$ of queries it holds that $A(\sigma) \le k\cdot OPT + b$.
+
+\subsection{Frequency Count}
+Frequency count is 2-competitive: $FC \le 2\cdot staticOPT$. Proof is left as an exercise. However, $FC$ is not competitive to dynamic optimum: $FC \ne O(1)\cdot dynamicOPT$
+
+\paragraph{Counterexample for dynamic optimum}
+\[\underbrace{1,...,1}_{\text{$n$ times}},\underbrace{2,...,2}_{\text{$n-1$ times}},...,n\]
+
+$dynamicOPT$ solves this in $\Theta(n^2)$, whereas $FC$ solves this in $\sum_{i=1}^n(n+1-i)\cdot i=\Theta(n^3)$
+
+\subsection{Transpose}
+Transpose is not competitive to $staticOPT$. The counterexample is $n, n-1, n,...$ and so on $m$ times. Thus:
+
+\[Tr: \Theta(m\cdot n)\]
+\[staticOPT=\Theta(m)\]
+
+\subsection{Move to Front}
+Move to Front is 2-competitive wrt both $staticOPT$ and $dynamicOPT$.
+
+\paragraph{2-competitive with $staticOPT$}
+Let $Cost_{ij}$ be the number of times element $i$ has been accessed while searching for element $j$.
+\marginpar{$\Leftarrow$ Please note that MTF has a very common worst case: a reverse scan}
+
+\[totalCost=\sum_{j}\sum_{j\ne i} Cost_{ij}\]
+
+Assuming that $f_1\ge ... \ge f_n$:
+
+\[Cost_{ij}^{OPT}=
+\begin{cases}
+  f_j & i < j \\
+  0 & else
+\end{cases}
+\]
+
+\[staticOpt=\sum_{i\ne j}Cost_{ij}=\sum_{i<j} Cost_{ij}^{OPT} + \sum_{i>j} Cost_{ij}^{OPT} = \sum_{i < j}f_j\]
+
+$Cost_{ij}^{MTF}\le f_j$ because we search $f_j$ times for $j$. Also, $Cost_{ji}\le f_j$ because after we search for $i$, we will not run into $j$ until we search for $j$ again.
+
+\[MTF=\sum_{i<j}Cost_{ij}^{MTF}+\sum_{j>i}Cost_{ij}^{MTF} \le \sum_{i<j}f_j+\sum_{j>i}Cost_{ji}^{MTF}\]
+\[\le \sum_{i<j}f_j+\sum_{i<j}f_j=2\cdot staticOPT\]
+
+\paragraph{2-competitive with $dynamicOPT$}
+The potential will quantify how different the list of $MTF$ is from that of $dynamicOPT$. We will use the number of substitutions as this metric. A substitution is a pair $i$, $j$ whose appearances in $MTF$ and $dynamicOPT$ are reversed.
+
+\[\Phi_0 = 0\]
+\[\Phi_k \ge 0\]
+\[\Phi_k=\text{number of substitutions between $MTF$ and $dynamicOPT$ after $k$ queries}\]
+
+On access(x):
+$MTF$ actual cost = the number of elements preceding x + 1.
+$\Delta\Phi_{MTF}=$ the number of elements that used to be swapped in OPT, less the number of elements 
+
+OPT actual cost $\ge$ number of elements before x and the number of "paid swaps" + 1.
+Each "paid swap" increases the potential by at most 1. If OPT moves x to the front, the potential does not increase.
+$\Delta\Phi_{OPT}\le$ the number of "paid swaps"
+
+amortized-cost-MFT: mtf-actual + $\Delta\Phi_{MTF}$ + $\Delta\Phi_{OPT}$ which is $\le$ twice the swapped blues and the paid swaps + 1 $\le 2 \cdot actualOPT$
+
+\[MTF \le \sum_{x\in \sigma}amort(op(x))\le 2\sum_{x\in \sigma}\]
+
+Visual proof done on whiteboard
+
+There is no deterministic algorithm that is better than 2-competitive.
+
+\subsection{Bitflip MTF}
+1.75-competitive on average.
+
+The best is 1.6-competitive, and the lower bound has been proven to be 1.5.
+
+\section{Splay Trees}
+
+Worst case access is $\Omega(\log n)$ and $O(\log n)$.
+
+\subsection{Stochastic Optimal}
+Choose each node such that the sum of probabilities of the subtrees is more or less equal. However, this is only an approximation of the optimal. We can build the optimal from the bottom up using dynamic programming.
+
+Let $cost_T=\sum_i p_i \cdot d(i)$ where $d(i)$ is the depth of the element $i$ in the tree.
+Let $cost_{ij}=\min_{i\le r \le j}\left( cost_{i,r-1} + cost_{r+1, j} \right) + \sum_{k=i}^j p_k$.
+
+Implementation of the DP is to compute the $cost_{ij}$ for all $i,j \in [1...n]^2$ which is $O(n^2)$ pairs, and fill a table starting from $i,i$. Computing $cost_{ij}$ costs us $O(n)$, which gives us a total cost of $O(n^3)$.
+
+\subparagraph{Knuth 71}
+$O(n^2)$ algorithm for construction. Knuth proved that $r_{i,j-1} \le r_{ij} \le r_{i,j+1}$. Colloquially, adding an element on one side of the tree should never move the root in the other direction.
+
+Visual explanation of the intuition on the whiteboard.
+
+\subsection{Static Optimal}
+
+\[staticOPT= \Theta\left( \sum p_i \underbrace{\log\left(\frac{1}{p_i}\right)}_{\text{entropy of $p_1,...,p_n$}} \right)\]
+
+\subsection{Approximation}
+Choosing each node such that balances the sum of probabilities in the subtrees is $O(n)$ and is a $O(1)$ approximation.
+
+\subsection{Dynamic Optimal}
+Each query starts from the root.
+Descending into a subtree costs 1.
+Rotating the tree is promoting the left or right child to the root of the current branch. This costs us 1.
+When accessing x, we must reach x.
+
+Visual guidance given on whiteboard for how to convert a tree into a list using rotations.
+
+\begin{description}
+  \item[Transpose] Rotate each element on access. The tree will have a depth of $\sqrt{n}$.
+  \item[Move to Root] Rotate each element to the root on access. This is $O(1)$ competitive with $staticOPT$, and not competitive with $dynamicOPT$
+  \item[Splay] double rotations
+\end{description}
+
+\subsection{Splay}
+
+ZigZag rotations, ZigZig rotations, and single rotations.
+
+Drawings are necessary to understand this. Find them in the lecture notes or in the video.
+
+\end{document}

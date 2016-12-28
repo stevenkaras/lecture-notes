@@ -1,0 +1,124 @@
+\documentclass[a4paper]{article}
+
+\title{Advanced Data Structures}
+\date{2016-11-17}
+\author{Lecture by Shay Mozes\\Typeset by Steven Karas}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+
+\begin{document}
+
+\maketitle
+
+\section{Fibonacci Heaps}
+
+\paragraph{Design}
+List of heap roots. Keep a reference to the smallest heap.
+
+Heaps are implemented as a pointer to the largest child, and cyclical linked list between siblings.
+
+\paragraph{Notation}
+
+\[t(H)=\text{\# of trees in heap }H\]
+\[m(H)=\text{\# of marked nodes in heap }H\]
+\[\phi(H)=t(H)+2m(H)\]
+
+\subsection{Delete-Min}
+Promote the children of the removed root. Drop the marks from any immediate children\marginpar{In the slides, some roots are marked. They should not be.}. Merge heaps in order of root traversal until at most one heap of each degree is left.
+
+\subsection{Decrease-Key}
+Decrease the key. If the heap condition is violated, disconnect the subheap and merge it into the root list.
+
+\paragraph{Unmarked Parent}
+Mark the parent.
+
+\paragraph{Marked Parent}
+Disconnect the marked parent as a subheap and merge it into the root list. Mark the grandparent and repeat (this is sometimes referred to as cascade).
+
+\paragraph{Complexity}
+Let $c$ be the number of cascading grafts that were performed. $O(c)$.
+
+\paragraph{Amortized Cost}
+$O(1)$.
+
+\[t(H')=t(H)+c\]
+\[m(H')\le m(H)-c+2\]
+\[\Delta\]
+% TODO: fill in from slide 57
+
+\subsection{Delete}
+Decrease the key value to $-\infty$ and Delete-Min.
+
+\subsection{Bounding Maximum Degree}
+$D(N)=$ max degree in Fibonacci heap with N nodes.
+
+\paragraph{Key Lemma}
+$D(N) \le $
+
+Key lemma. D(N)   log  N, where   = (1 +  5) / 2.
+Corollary. Delete and Delete-min take O(log N) amortized time.
+Lemma. Let x be a node with degree k, and let y1, . . . , yk denote the children of x in the order in which they were linked to x. Then:
+degree(yi)  
+ 0 if i 1  i 2 if i 1
+Proof.
+When yi is linked to x, y1, . . . , yi-1 already linked to x,
+  degree(x) =i-1
+  degree(yi) = i - 1 since we only link nodes of equal degree
+Since then, yi has lost at most one child
+– otherwise it would have been cut from x Thus,degree(yi)=i-1 or i-2
+\[D(N)=\]
+
+% TODO: fill in from slide 59
+
+\subsubsection{Lemma}
+In a Fibonacci heap with N nodes, the maximum degree of any node is at most $\log_\phi N$, where $\phi=\frac{1+\sqrt{5}}{2}$
+
+\paragraph{Proof}
+Proof in video around 703pm, slide 60
+
+Let $size(x)=\text{\# nodes in the subtree rooted at x}$.
+For any node $x$, we want to show that $size(x)\ge \phi^{\text{degree}(x)}$.
+Let $s_k$ be the minimum size of the tree rooted at 
+
+\paragraph{Fibonacci's Sequence}
+
+\[
+F_k=
+\begin{cases}
+1 & \text{if }k=0 \\
+2 & \text{if }k=1 \\
+F_{k-1}+F_{k-2} & \text{if }k\ge2
+\end{cases}
+\]
+
+\[F_k\ge\phi^k\text{, where }\phi=\frac{1+\sqrt{5}}{2}\]
+
+For $k\ge2$, $F_k=2+\sum_{i=0}^{k-2}F_i$
+
+% Which implies that TODO: fill in from slide 61
+
+Formal proofs on slide 64.
+
+\section{Hashing}
+The purpose of Hashing is to manage a set $S$ of elements within some universe $U$.
+
+\paragraph{Query}
+Is the element $x\in U$ inside $S$?
+
+\paragraph{Insertion/Deletion}
+$S'=S\cup{x}$ and $S'=S\setminus x$
+
+\paragraph{Formally}
+Let $h(x):S\to [m]$, where $[m]={0,...,m-1}$.
+
+\subsection{Chaining}
+Colliding elements are stored in a list. Worst case behavior of $O(n)$.
+
+\subsection{Perfect Hashing}
+
+This is the point where I left the lecture for Thanksgiving dinner.
+
+\end{document}
