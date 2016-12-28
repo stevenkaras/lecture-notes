@@ -1,0 +1,258 @@
+\documentclass[a4paper]{article}
+
+\title{Advanced Algorithms}
+\date{2016-11-20}
+\author{Lecture by Shay Mozes\\Typeset by Steven Karas}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{listings}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{}
+Homework {\bf must} be submitted as PDF. Proofs must be complete, and not leave out "trivial" details.
+
+Question 3, we needed to translate back to the original weights.
+
+Also note that "justify" means "prove".
+
+\section{Solvable problems}
+All problems that we can solve. Counterexample: Halting problem.
+
+\section{P}
+Complexity class of problems solvable in polynomial time.
+
+\paragraph{Formal Definition}
+Set of all problems solvable with some algorithm with complexity $O(n^k)$ for some $k \in \mathbb{R}$
+
+\section{NP}
+Complexity class somewhere between P and PSPACE.
+
+\paragraph{History}
+Discovered in early 1970s by Karp, Cook, Levin. Discussed the problems directly, rather than the algorithms or theoretical machine model. As of 2016, no one has proven either that $\text{P} \subset \text{NP}$, nor $\text{P} = \text{NP}$
+
+\paragraph{Hamiltonian Cycle}
+A Hamiltonian cycle in an undirected graph is a sequence of edges/vertices that visits every vertex exactly once.
+
+\paragraph{Formal Definition} Lacking...
+
+\subsection{NP-Complete}
+Complexity class of problems in NP that are at least as hard as all other problems in NP, and in NP. If any of the NP-Complete problems can be solved in polynomial time, then all problems in NP-Complete can be solved in polynomial time.
+
+\paragraph{}
+If a problem is NP-Complete, it is recommended to not attempt to solve it, but rather use an approximation, or circumvent the problem some other way.
+
+\paragraph{Reduction}
+$S$ is reducible in polynomial-time to $Q$ ($S \le_P Q$) if given a black box that solves $Q$ in polynomial time, it is possible to solve $S$ in polynomial time.
+
+\paragraph{Formal Definition}
+$S$ is NP-Complete if:
+
+\begin{itemize}
+  \item $S \in \text{NP}$
+  \item Every problem $R$ in NP is reducible to P: $R \le_P S, \forall R \in \text{NP}$
+\end{itemize}
+
+\paragraph{}
+Practice: prove that if $S \le_P Q$ and S is NP-Hard, then Q is NP-Hard
+
+\subsection{Optimization vs Decision}
+P, NP are formally defined in terms of decision problems (problems with a yes/no answer). Many of our opt/search problems can be recast in terms as a decision problem.
+
+\paragraph{Example: Hamiltonian cycle}
+% TODO: fill in from slide 14
+
+\subsection{SAT problem}
+The first problem to be proven as NP-Complete. Given a boolean formula of n variables, can we assign values such that the formula is TRUE?
+
+\paragraph{Example}
+\[((x_1 \land x_2) \lor \lnot ((\lnot x_1 \land x_3) \lor x_4) \land \lnot x_2 \]
+
+TODO: fill in from slide 15
+
+\paragraph{Cook-Levin Theorem}
+SAT is NP-Complete. Note: Argued from first principles, not reduction. Proof not given here.
+
+\subsection{Graph Coloring}
+A coloring of a graph $G(V,E)$ is a function $c:V\to \mathbb{N}$ such that for any edge $(u,v)\in E$, $c(v)\ne c(u)$. Given a graph $G$ and integer $k$, is there a coloring of $G$ with $k$ colors?
+
+\paragraph{}
+The chromatic number is the minimum number of colors needed
+
+% TODO: fill in from slide 16
+
+\subsection{k-Clique Problem}
+A clique in a graph G is a subset of vertices fully connected to each other (i.e. a complete subgraph of G). How large is the largest clique in the graph?
+
+\paragraph{}
+NOTE that k-Clique is a polynomial problem for a given k.
+
+% TODO: fill in from slide 18
+
+\subsection{Vertex Cover}
+A vertex cover of a graph G is a set of vertices incident to every edge in G. What is the minimal cover size?
+
+\paragraph{As a decision problem}
+Does a vertex cover of size k exist?
+
+\subsection{Traveling Salesman Problem}
+Optimization variant: a salesman must travel to n cities, visiting each city exactly once and finishing back where he started. Minimize the travel time.
+
+Modeled as a complete graph with cost $c(i,j)$ to go from city i to city j.
+
+\paragraph{Decision version}
+Ask if there exists a path $p$ with cost $c_p \le k$
+
+% TODO: fill in from slide 21
+
+\subsection{Partition}
+Given a set of integers, whose total sum is 2S, can be partition them into two sets, each of which adds up to S?
+
+\subsection{Subset-Sum}
+% TODO: fill in from slide 22
+
+\subsection{Independent Set}
+Given a graph $G=(V,E)$ and $k$; Is there a subset S of at least $k$ vertices in V such that no pair of vertices in S has an edge between them.
+
+Optimization problem: find a maximum size independent set of 
+
+NOTE: maximal is local, maximum is global\footnote{This may appear in the homework}.
+
+\subsection{Steiner Tree}
+Given a graph $G=(V,E)$, a set of vertices $T \subset V$, and a bound B. Is there a tree connecting all the vertices of T of total weight at most B?
+
+Note that $T=V$ is polynomial as it is equivalent to the MST problem.
+
+% TODO: fill in from slide 24
+
+% TODO: draw example from whiteboard (around 731)
+
+\subsection{Exact Cover}
+Given a set $U=\{u_1,...,u_n\}$ and subsets $S_1, S_2, ..., S_m \subseteq U$. Determine if there is a set of disjoint sets whose union is U.
+
+% TODO: fill in from slide 25
+
+\subsection{Bin Packing}
+Given a set of numbers $A=\{a_1,...,a_n\}$, a capacity B, and the number of bins K. Determine if A can be partitioned into $S_1,...,S_K$ such that for all $i$: $\sum\limits_{j\in S_i} a_j \le B$
+
+% TODO: fill in from slide 27
+
+\subsection{Dealing with NP-Hardness}
+Stop looking for efficient algorithms. Either trade off optimal solutions for efficient approximations, or sidestep the problem.
+
+\begin{itemize}
+  \item Backtracking - build every solution in turn
+  \item Branch and bound - trim off unreasonable branches from tree search
+  \item Dynamic programming
+  \item Change the problem - parameterized complexity, solving a more structured problem (MST instead of Steiner Tree)
+  \item Guaranteed Approximations - performance guarantees in return for results that are within some bound of the global optimum
+  \item Heuristic Approximation - using heuristics in return for decent average results
+\end{itemize}
+
+\section{Approximation Algorithms}
+Just because a problem is NP-Complete, doesn't mean we can't find an approximate solution efficiently. Even more so, we can get some guarantees on performance and optimality.
+
+\subsection{Additive Error}
+For a few NP-Hard problems, there are approximation algorithms that produce an {\bf almost optimal} solution. One that is only off from the global optimum by some additive constant.
+
+\paragraph{Minimization problems:}
+$Alg(I)\le Opt(I) + c$
+
+\paragraph{Maximization problems:}
+$Alg(I)\ge Opt(I) - c$
+
+\paragraph{Edge Coloring}
+An edge coloring of the graph $G=(V,E)$ is the assignment of colors to edge such that if $e_1$ and $e_2$ share an endpoint, then $c(e_1) \ne c(e_2)$.
+
+Let $\Delta$ be the maximal degree of some vertex in G. There is a proof that for any graph G, the minimal color set is $\Delta$ or $\Delta + 1$. However, to tell which is NP-Hard.
+
+However, there is a polynomial algorithm that colors any graph G using $\Delta + 1$ colors. In this case, $Alg(I) \le Opt(I) + 1$
+
+\subsection{r-Approximation}
+All the approximation algorithms we will cover are factor r:
+
+Vertex Cover, 
+% TODO: fill in from slide 4
+
+\paragraph{Minimization Definition}
+$Alg$ is a r-approximation if $Alg(I) \le r \cdot Opt(I)$ for any instance I.
+
+\paragraph{Example: TSP}
+TSP is a minimization problem. If we have an algorithm A that finds, for any graph, a tour 
+% TODO: fill in from slide 6
+
+\paragraph{Example: MST}
+This is trivially exact....
+% TODO: fill in from slide 6
+
+\paragraph{Maximization Definition}
+$Alg$ is a r-approximation if $Alg(I) \ge (1/r) \cdot Opt(I)$ for any instance I. Sometimes an alternative notation is used.
+
+\paragraph{Example: Maximum Clique}
+If we have an algorithm A that finds for any graph a clique
+
+% TODO: fill in from slide 9
+
+\subsection{Matching}
+A matching in a graph $G$ is a subset $M$ of $E$ such that the degree of each vertex in $G'=(V',M)$ is 0 or 1. Basically, matching vertices to at most 1 other vertex.
+
+\paragraph{Example}
+From slide 8.
+
+\subsection{Example: Vertex Cover}
+Given $G=(V,E)$, find a minimum sized subset $W$ of $V$ such that for every $(v,u)$ in $E$, at least one of $v$ or $u$ is in $W$.
+
+We are willing to end up with a vertex cover $W$ that is not the minimum vertex cover. But, we don't want it to be too large, and we want to be able to find it in polynomial time.
+
+\paragraph{Approximation}
+
+\begin{lstlisting}[frame=L]
+While E is not empty:
+1. select an arbitrary edge (u,v)
+2. add both u and v to the cover
+3. delete all edges incident to either u or v
+\end{lstlisting}
+
+\paragraph{Proof of Correctness}
+Verbal proof in class. See video around 8:19pm
+
+\paragraph{Proof of Approximation}
+\marginpar{We want to show that $Opt$ has a lower bound, and that $Alg$ is approximate to within some upper bound wrt $Opt$.}
+This is a 2-approximation. Let $c$ be the number of iterations. The VC has size $2c$. the edges selected in step 1 form a matching of size $c$. If we consider a graph $G'$ in which only these edges appear, then if we want to cover these edges, then any minimal cover must include at least $c$ vertices.\footnote{Good verbal formal proof at 8:31pm in video}
+
+\paragraph{Complexity Analysis}
+Verbal proof $O(n^2)$. So long as the complexity is polynomial, we don't care that much.
+
+\paragraph{Greedy Variant}
+Sort vertices by degree, and select the highest degree. However, approximation ratio of this approach is not bound by r. For any r, there exists some graph for which the VC chosen by the algorithm is r-times larger than the optimal VC.
+
+\subparagraph{Proof}
+For some parameter $m$, the first layer of our constructed graph has $m!$ vertices. This first layer is the optimal vertex cover. We then build a second layer with $\frac{m!}{2}$ vertices. Each vertex in the second layer is connected to two vertices in the first layer. As such, each vertex in the second layer has degree 2. Each layer $i$ has $\frac{m!}{i}$ vertices connected to $i$ vertices from the first layer. There are $m$ such layers, with the last one having $\frac{m!}{m}=(m-1)!$ vertices, of degree m. Trivially, the optimal vertex cover is $Opt(I) \le m!$. In this case\footnote{Proof with drawings on whiteboard starting at 8:37pm}: 
+
+\[Alg(I)=\sum\limits_{i=2}^m\frac{m!}{i}=m!\sum\limits_{i=2}^m \frac{1}{i}=\Theta(m! \log m)\]
+
+\subsection{Example: Euclidean TSP}
+Given n points on a Euclidean plane, find the shortest tour. For each pair of vertices a,b; we are given the distance dist(a,b) from a to b.
+
+\paragraph{Triangle Inequality}
+Distances in the plane satisfy the triangle inequality: $dist(a,b) \le dist(a,c) + dist(c,b)$. This means that indirect paths are at best as good as a direct path.
+
+\paragraph{}
+NOTE: the weight of a minimum spanning tree is always less than the weight of the optimal tour.\footnote{Verbal proof at 8:53pm}.
+Our approximation is the DFS of the MST.
+
+\paragraph{Proof of Correctness}
+The DFS tour defines a spanning cycle of the graph, which includes each edge in its cycle exactly twice. Therefore, the length of the the DFS tour is exactly twice the length of the MST. However, we may visit some cities more than once.
+
+To get a legal TSP tour, we must jump from one leaf of the MST to the next. Because of the triangle inequality, these jumps can only reduce the total length of the tour.
+
+% TODO: pseudocode from slide 16
+
+% TODO: fill in from slide
+
+\end{document}

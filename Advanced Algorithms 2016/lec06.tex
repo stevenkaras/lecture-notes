@@ -1,0 +1,175 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+\usepackage{tikz}
+
+\title{Advanced Algorithms\\\large Lecture 6}
+\date{2016-12-11 \\ Last edited \currenttime\ \today}
+\author{Lecture by Shay Mozes\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\begin{document}
+
+\maketitle
+
+\section{Covering a Network}
+How many facilities should be build such that each customer is within a given distance from the nearest facility? Each client can have different requirements, and facilities may be located only at vertices or anywhere along an edge.
+
+This problem is NP-Hard with a reduction from the Dominating Set problem.
+
+\subsection{Trees}
+Attach a "string" to each vertex as long as its requirement. Select leaves in the tree, and stretch the string along their edge. If the string reaches the other vertex, reduce the string length there to the smaller of the current value and the excess left over from stretching. If it doesn't reach, create a facility along the edge. Remove the leaf and the edge from the network, and repeat until the tree is empty. Note that searching for facilities prior to "stretching" strings is necessary.
+
+\paragraph{Optimality proof}
+Claim: this algorithm produces an optimal solution.\footnote{We assume correctness. Correctness can be proved by induction, as explained in class.}
+Let $k$ be the number of facilities output by the algorithm. We will show that a set $A$ of $k$ vertices such that for any two vertices $v_1,v_2\in A$ it holds that $d(v_1,v_2)> S_{v_1} + S_{v_2}$.\marginpar{$\Leftarrow$ d is the distance function, and S is the requirements}. In other words, there are no two vertices in $A$ that can be served by the same facility. As such, in order to serve all the vertices in $A$, we need at least $|A|$ facilities, and therefore $OPT\ge k$.
+
+% TODO: wording
+For each string, we will define the controlling vertex $v$. The string is $S_v$ away from $v$. Per our algorithm, when a facility $c$ is created at the end of the string, the distance from $c$ to $v$ is exactly $S_v$.
+The set $A$ is composed of all the vertices that controlled a string when it created a facility.
+Because when we create a facility the string that created it is removed, it follows that $|A|=k$.
+Let $v_1,v_2$ be vertices in $A$ which controlled strings that created facilities $c_1,c_2$ where $c_1$ was created prior to $c_2$. Because the algorithm processes only leaves, the path from $v_1$ to $v_2$ must pass by way of $c_1$ at distance $S_{v_1}$. Note that $d(v_1,v_2)=\underbrace{d(v_1,c_1)}_{=S_{v_1}}+\underbrace{d(c_1,v_2)}_{>S_{v_2}} \ge S_{v_1}+S_{v_2}$.
+
+\section{Partition Problems}
+Given a set of numbers $A=\{a_1,...,a_n\}$ such that $\sum_{a\in A}=2B$. Is there a subset $A'$ such that $\sum_{a\in A'}=B$?
+
+For example, given $A=\{5,5,7,3,1,9,10\}$; $A'=\{10,5,5\}$, $A\setminus A'=\{7,3,1,9\}$, and $B=20$.
+
+This problem is NP-Hard.
+
+\subsection{Powers of 2}
+For example, given $A=\{32,16,16,8,4,2,2\}$; $A'=\{32,8\}$, $A\setminus A'=\{16,16,4,2,2\}$, and $B=40$.
+
+\paragraph{Algorithm}
+Sort the items such that $a_1\le ...\le a_n$.
+Let $S_1=S_2=\emptyset$ and $s_1=s_2=0$.
+For each $s \in S$: add $s$ to the smaller of $S_1$ or $S_2$, tracking the sums in $s_1, s_2$.
+If $s_1=s_2$, then there is a partition. Otherwise, there is not.
+
+\paragraph{Correctness Proof}
+If the algorithm produces a partition, it exists. We need to prove that if the algorithm does not exist, then a partition does not exist.
+
+\subparagraph{Lemma}
+Let $A_1$, $A_2$ be two sets of power-$2$ integers, such that each integer is $\ge 2^v$. Then $\sum_{a\in A_1}a - \sum_{a\in A_2} a$ is a multiple of $2^v$.
+
+\paragraph{}
+Assume that the algorithm does not find a partition. Therefore at some point, one set was larger than $B$. Consider the time when a set is about to become larger than $B$. When this happened, some item of size $2^v$ is considered, and the remaining size in both $A_1$, $A_2$ is less than $2^v$.
+
+Assume the negative that a partition does exist. Then we can swap the subsets $A_1\subseteq S_1$, $A_2\subseteq S_2$ to fix the partition produced by the algorithm. Because all integers thus far are $\ge 2^v$, the difference $|A_1 - A_2|$ is at least $2^v$ (because it is a nonzero multiple of $2^v$). Therefore at least one of the sets overflows, contradicting our assumption that a partition exists.
+
+\section{Interval Graphs}
+An interval graph is the intersection graph of intervals on the reals, where the vertices are the intervals, and the edges connect intersecting intervals.
+
+\subsection{Maximum Independent Set}
+Otherwise known as the activity selection problem. We want to maximize the number of activities we participate in. Lots of rides, each starting and ending at a different time.
+
+\paragraph{Formally}
+Given a set $S=\{a_1,...,a_n\}$ of $n$ activities where $a_i=(s_i, f_i)$ where $s_i$ is the start time, and $f_i$ is the finish time of $a_i$. We want to find a maximum subset of $S$ of non-conflicting activities.
+
+\paragraph{Dynamic Programming Solution}
+Let $S_{ij}=\{k:f_i\le s_k<f_k\le s_j\}$ be the subset of activities that start after $a_i$ finishes and finish before $a_j$ starts. NOTE: Add $a_0=(0,0)$ and $a_{n+1}=(\infty, \infty)$.
+
+Define $C[i,j]$ be the maximum number of activities from $S_{ij}$ that can be selected.
+
+\[
+C[i,j]=
+\begin{cases}
+  \max\limits_{k\in S_{ij}}\{c[i,k]+c[k,j]+1\} & \text{if }S_{ij}\ne \emptyset \\
+  0 & \text{if }S_{ij}=\emptyset
+\end{cases}
+\]
+
+% TODO: fill in from slides 61
+
+\paragraph{Greedy Solution}
+Note that the activity selection problem exhibits the \textit{greedy choice} property; A locally optimal choice gives us a globally optimal solution.
+
+\subparagraph{Theorem}
+If $S$ is an activity selection instance sorted by finish time, then there exists an optimal solution $A\subseteq S$ such that $\{a_1\}\in A$
+
+\subparagraph{Proof}
+% TODO: fill in from slide 62
+
+\subparagraph{Complexity}
+$O(n\log n)$, but the intuition is simple, and easier to implement.
+
+\paragraph{MIS is Activity Selection}
+Any interval graph has an interval representation in which all interval endpoints are distinct integers and this representation can be done in poly-time\footnote{Proof left as exercise}. Therefore, Activity Selection is MIS.
+
+\section{Graph families}
+\begin{enumerate*}
+  \item Trees
+  \item Intersection graphs
+  \item Chordal graphs
+  \item Planar graphs, surface embedded graphs - navigation
+  \item Random graphs
+  \item Serial-Parallel
+  \item many many more
+\end{enumerate*}
+
+Explanation of various properties, interesting problems and solutions around 817pm.
+
+\section{Tree-like graphs}
+
+\subsection{Path Decomposition}
+Paths are easier to deal with than trees (conceptually).
+
+We can build a path with some simple operations, starting from an empty graph: Introduce a vertex, introduce an edge, forget a vertex (forever)\footnote{Example of such a construction given in the lecture}.
+
+\paragraph{Pathwidth}
+One less than the size of the largest bag\marginpar{$\Leftarrow$ Bags, components, cells, etc. are all names for this}.
+
+\paragraph{$k$-Clique}
+The pathwidth of $K_n$ is $n-1$, and the decomposition always uses exactly one component/bag
+
+\paragraph{Formally}
+A path decomposition $P$ of $G$ is a path of bags such that ever vertex in $G$ is in some bag, every edge in $G$ is in some bag, and for every $v\in G$, the bags containing $v$ are connected in $P$.
+
+\subsection{Tree decomposition}
+Similar to path decomposition, but we allow joining two bags together\footnote{Example given in lecture and on slide 71}.
+
+\paragraph{Treewidth}
+The treewidth of $G$ is the smallest width of a tree decomposition of $G$.
+
+\paragraph{Maximum Weighted Independent Set on Trees}
+% TODO: fill in from slide 76
+
+$M_{\text{out}}[u]$ is the maximum weight of an IS that does not include $u$ in the subtree $T_u$
+$M_{\text{in}}[u]$ is the maximum weight of an IS that does include $u$ in the subtree $T_u$
+
+\subparagraph{MWIS on Tree Decompositions}
+For every bag $B$ and every subset $U\subseteq B$:
+
+$M[B, U]$ is the size of the maximum IS in the subgraph induced by all vertices in all bags in $T_B$ such that all vertices of $U$ are in the IS, and all the vertices $B\setminus U$ are not in the IS.
+
+% TODO: fill in from slide 78
+
+If $U$ is not an IS in the subgraph of $G$ induced by the vertices of $B$, then $M[B,U]=-\infty$.
+
+\[M[B, U] = -\infty \text{ if $U$ is not an IS in $B$}\]
+\[M[B, U] = w(U) \text{ if $B$ is a leaf}\]
+\[M[B, U] = w(U) + \sum\limits_{B_i\text{ child of B }} \max\limits_Y \{M[B_i,Y]\} - w(U \cap Y)\]
+
+\subparagraph{Complexity}
+$O(n\cdot 4^k)$, where $k$ is the treewidth.
+
+\end{document}
