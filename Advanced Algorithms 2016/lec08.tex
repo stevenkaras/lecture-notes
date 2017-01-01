@@ -1,0 +1,310 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts,amssymb}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+\usepackage{tikz}
+
+\title{Advanced Algorithms\\\large Lecture 8}
+\date{2016-12-18 \\ Last edited \currenttime\ \today}
+\author{Lecture by Shay Mozes\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Notes}
+
+Mid-term feedback survey is available on Moodle site.
+
+Final exam will follow format from previous years.
+Last years in particular is good.
+The first year he taught the course the exam was a little too long.
+
+\section{Linear Programming}
+
+\paragraph{Recommended reading}
+\begin{itemize*}
+  \item CLRS (from 2nd edition onwards)
+  \item "Linear Algebra and Its Applications", by Gilbert Strang, chapter 8
+  \item "Linear Programming", by Vasek Chvatal
+  \item "Introduction to Linear Optimization", by Dimitris Bertsimas and John Tsitsiklis
+  \item \href{http://www.sce.carleton.ca/faculty/chinneck/po.html}{Lecture Notes} by John W. Chinneck
+\end{itemize*}
+
+While the term "Programming" is largely historical, it is one of the most widely used applications of computer science.
+At its core, linear programming is optimizing a system of linear inequalities (called constraints).
+
+\paragraph{Example: Diet Problem}
+As a poor student, we want to spend as little money as possible on food. However, we need to also eat enough to stay alive and healthy.
+
+In a proper diet, we need to eat 4 units of protein a day. Peanut butter provides 1 unit, and costs 2\$. Steak provides 2 units, and costs 3\$.
+
+Let $x=$ the amount of peanut butter per day in the diet.
+Let $y=$ the amount of steak per day in the diet.
+
+So we want to minimize $2x+3y$ subject to the constaints $x+2y \ge 4$, $x \ge 0$, and $y \ge 0$.
+
+\paragraph{Example applications}
+
+\begin{itemize*}
+  \item Airline crew scheduling
+  \item Manufacturing and production planning
+  \item Telecommunications network design
+\end{itemize*}
+
+\paragraph{Formal}
+A linear program is a problem with $n$ variables $x_1,...,x_n$, an object function of the form $\min c_1x_1+...+c_nx_n$ (or $\max$), and a set of $m$ linear constraints of the form $a_{i1}x_1+...+a_{in}x_n <=> b_i$, along with the coefficients $a$, $b$, and $c$.
+
+\paragraph{Matrix form}
+
+$\max c^\intercal x$ such that $Ax \le b$ where $x$ is a vector of $n$ variables, $c$ is a vector of $n$ objective function coefficients, $A$ is an $n$ by $m$ matrix of constraint coefficients, and $b$ is a vector of $m$ constraint values.
+
+\paragraph{Geometric Intuition}
+Each constraint subdivides the solution space in 2.
+Feasible solutions satisfy all the constraints.
+The Feasible Set is the set of all feasible solutions.
+Another way to define this is as the intersection of all the halfspaces where each constraint is satisfied.
+Any intersection of halfspaces is called a convex polyhedron, so therefore the feasible set is a convex polyhedron.
+
+A bounded and nonempty polyhedron is called a polytope.
+
+Generally speaking, we have three cases:
+
+\begin{enumerate*}
+  \item The feasible set is empty (the problem is not feasible)
+  \item The feasible set is unbound (as in the above example)
+  \item The feasible set is bounded and nonempty (a polytope)
+\end{enumerate*}
+
+The first two cases are very rare for practical purposes.
+
+\subparagraph{Fact:}
+every point $p$ in a convex polytope can be represented as a convex combination of the vertices $v_i$ of the polytope.
+
+\[p=\sum \lambda_i v_i \quad (0 \le \lambda_i \le 1 \;;\; \sum \lambda_i = 1)\]
+
+\subsection{Optimal values are always at a vertex}
+
+The objective function defines a family of parallel hyperplanes.
+We want to find one that intersects the feasible set and minimizes the objective function.
+
+\paragraph{Proof}
+Let $p$ be a point in the feasible set.
+Write $p=\sum \lambda_i v_i$.
+By linearity of the objective function $z$, $z(p)=\sum \lambda_i z(v_i) \le z(v_{\max})$ where $v_{\max}$ is the vertex that maximizes $z$.
+
+\subsection{Standard Form}
+Maximize $\sum\limits_{j=1}^n c_j x_j$ subject to $\begin{matrix}\sum_{j=1}^n a_{ij} x_j & i=1 ... m \\ x_j\ge 0 & j = 1 ... n\end{matrix}$.
+
+\paragraph{Standard matrix form:}
+Maximize $C^\intercal x$ such that $Ax \le b$ and $x \ge 0$.
+
+\subsection{Solving LP}
+\begin{itemize*}
+  \item Simplex method. Non-polynomial, but fast for practical purposes.
+  \item Ellipsoid method. First polynomial solution from 80's.
+  \item Interior Point method. Modern methods are comptetive with Simplex.
+\end{itemize*}
+
+\subsection{Simplex Algorithm}
+Assign additional "slack" variables, that together provide a computational way of iterating over the vertices of the feasible set.
+
+\paragraph{Example: Bakery}
+Bob's bakery sells bagels and muffins.
+To bake a dozen bagels, Bob needs 5 cups of flour, 2 eggs, and one cup of sugar.
+To bake a dozen muffins, Bob needs 4 cups of flour, 4 eggs, and two cups of sugar.
+Bob can sell bagels for \$10/dozen and muffins for \$12/dozen.
+Bob has 50 cups of flour, 30 eggs, 20 cups of sugar.
+
+How many bagels and muffins should Bob make to maximize his revenue?
+
+\subparagraph{Formally}
+
+\begin{tabu} to \linewidth {c|ccc}
+& Bagels & Muffins & Available \\
+\hline
+Flour & 5 & 4 & 50 \\
+Eggs & 2 & 4 & 30 \\
+Sugar & 1 & 2 & 20
+\end{tabu}
+
+\[
+A=\begin{bmatrix}
+5 & 4 \\
+2 & 4 \\
+1 & 2
+\end{bmatrix}
+\quad
+b=\begin{bmatrix}
+50 \\
+30 \\
+20
+\end{bmatrix}
+\quad
+c=\begin{bmatrix}
+10 \\
+12
+\end{bmatrix}
+\]
+
+\paragraph{Exercise: Max flow}
+Given a directed graph $G=(V,E)$ with non-negative arc capacities.
+
+Let the objective function and the constraint matrix be the weighted adjacency matrix $E$.
+
+\subparagraph{}
+$f_e$ is the flow of the edge $e$, where $e=uv$
+
+\[\max \sum_{e:head(e)=t} f_e\]
+
+% capacity
+\[\forall e\in E : f_e \le c_e \]
+% leakage
+\[\forall v\in V \setminus \{s,t\} : \sum_{e:head(e)=v} f_e - \sum_{e:tail(e)=v} f_e = 0\]
+
+Overall, we have $m+n-2$ constraints.
+
+\paragraph{Example: Toy Factory}
+A toy factory produces dolls and cars.
+A new employee called Danny is hired.
+He can produce 2 cars and 3 dolls each day.
+However, the packaging machine can only pack 4 items each day.
+The company's profit is \$15 per car and \$10 per doll.
+
+Note that we know that the global optimum must be at a vertex of the polytope.
+We can also prove that a local optimum is also a global optimum.
+
+\paragraph{Simplex Algorithm}
+In a nutshell, move between neighboring vertices towards a local optimum.\footnote{The pathalogical case is where the objective function is parallel to one of the faces of the polytope. These cases are covered in the recommended reading.}
+
+\begin{enumerate*}
+  \item Find any vertex as a starting point. The origin can be used as a starting point in many cases.
+  \item Repeatedly move to a neighboring vertex that improves the objective function.
+\end{enumerate*}
+
+\paragraph{Example: Toy Factory}
+Start at $(0,0)$ with an objective value of $z(0,0)=0$.
+Take the first step to $(2,0)$ with an objective value of $z(2,0)=30$.
+Take the second step to $(2,2)$ with an objective value of $z(2,2)=50$.
+Check the only neighboring vertex at $(1,3)$, but it's objective value is $z(1,3)=45 < 50$.
+Therefore, the optimum is $(2,2)$ with an objective value of $50$.
+
+\paragraph{Finding vertices algebraically}
+At a vertex a subset of the inequalities are equalities.
+It is easy to find the intersection of linear equalities (solution to a system of equations).
+We will add "slack" variables to determine which inequalities are "tight" or not.
+
+\[\binom{n+m}{n} = \frac{(n+m)!}{n!m!}\]
+
+\begin{description}
+  \item[Nonbasic variable] a variable currently set to zero by the simplex method.
+  \item[Basic variable] a variable that is not currently set to zero by the simplex method.
+    The values of basic variables are determined by the nonbasic variables.
+  \item[A basis] the current set of basic variables
+\end{description}
+
+In each step, the basic variable that improves the objective function the fastest replaces the nonbasic variables that improves the objective function the least with regards to the entering variable. 
+
+%TODO: copy the example run of the simplex algorithm
+
+\paragraph{Summary: Simplex Algorithm}
+Not polynomial, but typically runs quite well.
+We also assume that the matrix A is non-singular (otherwise omitting linearly dependent constraints).
+Degenerate steps don't improve the objective function.
+
+\subsection{Integer Programming}
+Linear programming with an additional constraint that the values can only ever be integers.
+
+\subsubsection{Binary Integer Programming}
+Values can only ever be 0 or 1.
+
+NP-Hard, but can be used to model many problems.
+
+\paragraph{Example: Vertex Cover}
+Variables are for each $v \in V$, $x_v$ indicates if $v$ is in the cover.
+Subject to: $\forall i,j \in E : x_i + x_j \ge 1$, $x_v \in \{0, 1\}$.
+Minimize $\sum_v x_v$.
+
+\paragraph{Example: Set Cover}
+Given the subsets $S_1,...,S_n$ of $\{1,...,m\}$ and a cost $p_i$ for each subset $S_i$; Minimize the total cost of subsets that cover the entire set.
+
+Let $x_i \in \{0, 1\}$ be whether or not the subset $S_i$ is included in the cover. Minimize $\sum_i p_i \cdot x_i$ subject to the constraint that $\forall i \in \{1,...,m\} : \sum_{i:j \in S_i} x_i \ge 1$
+
+\paragraph{Example: Shortest Path}
+Given a directed graph $G=(V,E)$ and $s,t \in V$ and a nonnegative length $p_e$ for each edge $e \in E$.
+Let the variables be for each edge $x_e$ which indicates if $e$ is in the path.
+
+Minimize $\sum_e p_e \cdot x_e$ subject to $x_e \in \{0, 1\}$ and:
+
+\[\forall u\in V \setminus \{s,t\} : 
+\begin{matrix}
+  \sum_v x_{s,v} - \sum_u x_{u,s} \ge 1 \\
+  \sum_u x_{u,t} - \sum_v x_{t,v} \ge 1 \\
+  \sum_p x_{u,p} - \sum_q x_{q,u} \ge 1
+\end{matrix}
+\]
+
+Note that the first condition ensures that the path originates from the source, the second condition ensures the path reaches the target, and the third condition ensures it's a path.
+
+\paragraph{Example: Single machine scheduling of interval jobs}
+Schedule jobs on a processor.
+Each job can be scheduled in one of a finite collection of allowed time intervals.
+Scheduling a job $j$ at interval $I$ imposes $w(I)$ load and $p(I)$ profit.
+Find the most profitable subset of intervals, at most one interval per job, such that the total load at each time is at most 1.
+
+Define the variables as $x_I$ for each possible interval I.
+
+\subsection{Branch and Bound}
+A.K.A. Dakin's Algorithm.
+Let $Z^* = -\infty$ be the incumbent value, and start from the root.
+
+Bound: Solve relaxed LP problem:
+\begin{enumerate*}
+  \item If infeasible, prune the branch.
+  \item Let $U$ be the objective value. It is an upper bound on the possible values for this branch.
+  \item If $U < Z^*$, then prune as the branch cannot produce the optimal solution.
+  \item If all variables are integers, then $Z^* \gets U$.
+\end{enumerate*}
+
+Branch: Select a leaf with a non-integer variable $x^*$, branch into two sub-LPs: $x \le \lfloor x^* \rfloor$ and $\lceil x^* \rceil \le x$.
+
+\paragraph{Examples}
+
+\begin{itemize*}
+  \item \href{http://optlab-server.sce.carleton.ca/POAnimations2007/MILP.html}{Interactive example}
+  \item \href{http://optlab-server.sce.carleton.ca/POAnimations2007/BranchAndBound.html}{Scheduling example}
+\end{itemize*}
+
+\paragraph{Example: Weighted Vertex Cover}
+Given a graph $G=(V,E)$ with non-negative weights $w(v)$ on the vertices.
+Find a minimum-cost set of vertices $S$ such that all the edges are covered.
+An edge is covered iff at least one of its endpoints is in $S$.
+
+Reminder: Vertex cover is NP-Complete. The best known approximation factor is $2-\left( \frac{\log \log |V|}{2 \log |V|} \right)$
+
+Let the variables be $x(v)$ for $v\in V$ as whether $v$ is in the cover or not.
+Minimize $\sum_{v\in V} w(v) \times (v)$ such that $x(v) + x(u) \ge 1 \; \forall (u,v) \in E$ and $x(v) \in \{0,1\} \; \forall v\in V$.
+
+\section{Next week}
+More linear programming
+
+\end{document}
