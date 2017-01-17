@@ -1,0 +1,146 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+\usepackage{listings}
+
+\lstset{
+  language=Python,
+  frame=L,
+  showstringspaces=false
+}
+
+\title{Statistics and Data Analysis\\\large Lecture 11}
+\date{2017-01-17 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Zohar Yakhini\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\newcommand{\mean}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+\newcommand{\underrel}[2]{\mathrel{\mathop{#2}\limits_{#1}}}
+
+\begin{document}
+
+\maketitle
+
+\section{Practical Analysis}
+
+\subsection{Jelly beans}
+
+I wasn't paying attention, but I think he used the famous \href{https://xkcd.com/882/}{XKCD} to talk about p-values.
+
+\subsection{Tall people on a bus}
+What is the probability that the person sitting next to you on the bus this evening is taller than 190cm?
+Basically, we just need the distribution across the general population.
+
+What is the probability that some person on the bus is taller than 190cm?
+Most buses have between 50-80 seats, assuming mostly full we can estimate this to be the general distribution repeated 70 times.
+
+What is the probability that some person on the IDC campus is taller than 190cm?
+As above, but repeat 1500 times (student body of 6k, staff and faculty is another 200 or so) - around 1500 students on campus in the evening based on classrooms and some studying/working.
+
+\subsection{How are p-values distributed under the null model?}
+Single experiment: toss a fair coin 100 times and compute $\hat{H}$. Then compute the p-value of $\hat{H}$ under the fair coin null.
+
+Perform this 1000 times and rank the $p(i)$s obtained and draw a scatter plot.
+
+The plot should look like a line, or very close to it.\footnote{A true scatter plot would be a diagonal line that is densest around the middle}.
+
+\section{Multiple testing}
+When analyzing big data, we often need to: test a large number of hypotheses, make many comparisons, and measure many variables.
+We need to interpret the p-values we get for each observation accordingly.
+
+\subsection{DNA Sequencing}
+Watson and Crick, 1953.
+
+Part of what they discovered is that A binds to T and C binds to G.
+
+\subsection{Central Dogma}
+A DNA gene is transcribed to mRNA which is translated into a protein.
+The human genome is around 4B bps, and the typical mRNA is 1-15K bps.
+
+\paragraph{Sanger Method}
+Generate all ACGT terminated prefixes of the sequence, by a polymerase reaction with terminating corresponding bases.
+Run in four different gel lanes.
+Reconstruct sequence from the information on the lengths of all ACGT terminated prefixes.
+The need for 4 different reactions is avoided by using differentially dye labeled terminated bases.
+
+\paragraph{Array Based Hybridization Assays}
+Array of probes, with thousands to millions of different probe sequences per array.
+Each probe has an unknown sequence or mixture, but many copies.
+
+\paragraph{Sequencing by Hybridization}
+Long story short is that this technique is not practical in real life due to various theoretical assumptions not holding.
+We can use the idea to measure relative levels of gene expression in various types of cells for well known genes.
+
+Let $E_{i,j} = $ the expression level of the gene indexed by $i$ in the assay indexed by $j$.
+
+Most recent technology for this is called RNASeq.
+
+\paragraph{Classified gene expression}
+Using assay to compare normal vs tumor cells to determine pathology or prognosis.
+
+We can use ttest to compare classes of tissues to find genes that are "differently expressed".
+
+\subsection{Separation Score}
+Not a statistically significant measure, but is used by some people. Much simpler to compute than the ttest:
+
+\[\frac{\mu_1 - \mu_2}{\sigma_1 + \sigma_2}\]
+
+The intuition being that this measures the probability region shared by the distributions.
+
+\subsection{Threshold Number of Misclassifications - TNoM Score}
+Find the threshold that minimizes the number of errors (false positives and false negatives). A perfect classifier has a score of 0. We determine the p-value based on the number of possible sequences with lower score (where $k$ is the score):
+
+\[p=\frac{1}{\binom{n}{n-k}}\]
+
+\subsection{Wilcoxon Rank Sum test}
+Compute the sum of the ranks of the positives. In the example on slide 39, the $RS(+)=34$. For a null model that all configurations are equiprobable, the mean value is $E(RS(+))=\sum_{i=1}^6 E(R(+i))=48$. Note that $RS(+)\ge 21$ for all configurations of 6 positives across 15 samples.
+
+We can compute the p-value for the deviation, which we may see next week.
+
+\subsection{p-values}
+ttest gives us an exact p-value for the exact-means null model.
+Wilcoxon rank sum gives us an exact p-value, and a normal approximation.
+TNoM gives us an exact p-value.
+
+\paragraph{BRCA1 Differential Expression}
+We analyzed some graphs and he explained how we can plot the p-value for various TNoM scores.
+
+\subsection{Bonferroni correction}
+Used to correct for multiple testing. Multiply all p-values by the number of tests.
+
+\[Bonferroni\text{-}p(g)=N\cdot p - Val(g)\]
+
+In the relevant \href{https://xkcd.com/882/}{XKCD}, we would reject the link of green jelly beans and acne unless the p value was sufficiently small.
+
+\subsection{False Discovery Rate (FDR)}
+Benjamini and Hochberg 1995.
+What fraction of the observed DE is expected at random (under a null model)?
+
+\[FDR(p)=\frac{pN}{O(p)}\]
+
+Where $O(p)$ is the number of observations.
+
+\section{Next Week}
+FDR review.
+Entropy/Threshold Mutual Information Score.
+
+\end{document}
