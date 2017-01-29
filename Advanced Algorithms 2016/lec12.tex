@@ -1,0 +1,247 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts,amssymb}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+\usepackage{tkz-graph}
+\usepackage{listings}
+
+\title{Advanced Algorithms\\\large Lecture 12}
+\date{2017-01-29 \\ Last edited \currenttime\ \today}
+\author{Lecture by Shay Mozes\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\begin{document}
+
+\maketitle
+
+\section{Sublinear Algorithms}
+Streaming, sketching, property testing.
+
+In many modern applications, the input is huge, and we can't possibly store or process all of the data.
+Even if we can store it, we may not be able to process it in a reasonable time.
+We still want to perform meaningful computations, so we need to change our computational model.
+
+\subsection{Sublinear space - streaming model}
+Input processed one element at a time.
+Space consumed should be far less than the size of the input (e.g. polylog).
+Sometimes, we allow multiple passes over the data.
+
+\paragraph{Example: Routing}
+Internet backbone routers process millions of packets per second.
+Want to compute statistics on network activity.
+Can’t store all the data going through.
+
+\paragraph{Example: Web Search}
+Determine statistics for ad placement.
+Huge database, constantly changing.
+Want to compute in single (or few) passes.
+
+\paragraph{Similarities to Online algorithms}
+We get data one element at a time, and the future is unknown.
+Usually, we will analyze the worst-case stream.
+
+\paragraph{Differences from Online algorithms}
+Can delay decisions until output.
+Memory is limited, and is sublinear by definition.
+
+\paragraph{Example: Estimating Frequency}
+Given an input $x_1,...,x_n$, provide $F(t)$ which is the number of times $t$ appears in the input.
+We can think of $F(t)$ as a vector of length $n$ where $F(t) \in [m]$.
+But this solution is too inefficient for large $m=poly(n)$.
+
+We want to keep a "sketch" of data.
+
+\subsubsection{Misra-Gries}
+Invented in \href{http://www.mathcs.emory.edu/~cheung/papers/StreamDB/Frequency-count/1982-Misra-FindRepeatedElements.pdf}{1982 by Misra and Gries}.
+Maintain a set $S$ of $k$ counters.
+If $x_i \in S$: increment counter for $x_i$.
+If there is space left in $S$, add $x_i$ to $S$.
+Otherwise, decrement all counters in $S$ and remove any counters that reach 0.
+
+$F(t)$ is a counter for $t$ if $t \in S$, otherwise 0.
+
+\paragraph{Space}
+\[k \cdot (\log n + \log m) = O(k \log n)\]
+
+\paragraph{Accuracy}
+Let $F'(t)$ be the frequency as reported by this algorithm. Let $F(t)$ be the actual frequency.
+
+\[F'(t) \le F(t)\]
+$F'(t) < F(t)$ can happen in two cases:
+
+\begin{enumerate}
+  \item $t$ wasn't in $S$ when it appeared and $S$ was full.
+  \item $t$ was in $S$ when some $s \notin S$ caused $F'(t)$ to be decremented.
+\end{enumerate}
+
+Both cases cause $k$ decrements, and the total number of occurrences is at most $m/k$.
+Therefore, because the sum of decrements cannot be more than the increments, it follows that the additive error is at most $m/k$.
+\footnote{A visual example was made on the whiteboard}
+
+\subsubsection{Turnstile Model}
+Input consists of pairs: $x_i, c_i$, where $c_i$ indicates the change in $x_i$. $c_i$ can be negative.
+Total at every point must be non-negative.
+
+We will show a randomized algorithm with an additive error of $\varepsilon \cdot |F|_1$, where $|F|_1=\sum |c_i|$ guaranteed with probability $1-\delta$.
+
+\subsection{Count Min Sketch}
+Invented by \href{http://dimacs.rutgers.edu/~graham/pubs/papers/cm-full.pdf}{Cormode and Muthukrishnan '05}.
+
+Maintain $t$ arrays with $k$ counters.
+For array $i$ choose a random hash function $h_i:[n] \to [k]$.
+On input $(x_j,c_j)$, for $i=1...t$:
+add $c_j$ to entry $h_i(x_j)$ of array $i$.
+
+\[F'(x)=\min_i A[i,h_i(x)]\]
+
+\paragraph{Accuracy}
+Let $k=2/ \varepsilon$ and $t=\log (1/\delta)$.
+
+\[\Pr[|F'(x)-F(x)|>\varepsilon \cdot |F|_1] < \delta\]
+
+% Proof done in class
+\subparagraph{Proof}
+Construct an element $a$ such that $X_i=\underbrace{A[i,h_i(a)]}_{\text{The counter for a in row i}}-F(a)$ is the error for $a$.
+Let $Y_{ib}=\{h_i(a)=h_i(b)\}$ be a random variable that indicates a hash collision between $a$ and $b$ in row $i$.
+We used random hash functions $h_j$, so it follows that $E[Y_{ib}]=\frac{1}{k}$.
+
+\[E[X_i]=\sum_{b\ne a} \Pr[Y_{ib}=1]F(b)=\sum_{b\ne a} E[Y_{ib}]F(b) \le \frac{1}{k} \sum_b F(b) \le \frac{1}{k}|F|_1\]
+\[\Pr[X_i > \overbrace{\frac{2}{k}}^{=\varepsilon} |F|_1] \le \frac{E[X_i]}{\frac{2}{k}|F|_1} \le \frac{\frac{1}{k}|F|_1}{\frac{2}{k}|F|_1}=\frac{1}{2} \]
+
+\paragraph{Space}
+
+\[O(t \cdot k \cdot \log |F|_1 + t \cdot \log k \cdot n)=\Omega(n)\]
+
+\subsubsection{Pairwise-Independent Hashing}
+Let $H$ be a family of functions from $[0...n-1]$ to a $[0...k-1]$.
+We say that $H$ is pairwise independent if for every $x\ne y \in [0...n-1]$ and $c,d\in [0...k-1]$:
+When $h$ is chosen uniformly from $H$, $\Pr_h[h(x)=c \text{ AND } h(y)=d]=\frac{1}{k^2}$.
+
+There is a family of pairwise-independent functions that require just $\log(n)+\log(k)$ space.
+
+Note that $\Pr_h[h(x) = h(y)] = 1/k$, and therefore Count-min sketches are efficient.
+
+\paragraph{Construction}
+Assume that $k$ is prime and $n=k^r$.
+Think of $u\in [0...n-1]$ as an integer in base $k$ such that $u=\sum_i u_i k^i$.
+The following family $H$ is pairwise independent:
+
+\[h_{\bar{a},b}(u)=b+\sum_{i=0}^{r-1}a_i u_i \mod k \quad;\quad 0 \le a_i,b \le k-1\]
+
+% a comment was made regarding the number of such functions, but I didn't catch it.
+
+To represent one function, we need to store $r+1=O(\log n / \log k)$ numbers, each in $\log k$ bits.
+
+\paragraph{Proof}
+We need to compute the probability that $h(u)=c$ and $h(v)=d$.
+If $u\ne v$, then there is some $i$ such that $u_j \ne v_i$.
+Given any choice of the other $a_j$'s, we have:
+
+\[a_i u_i+b=\left(c-\sum_{j\ne i} a_j u_j\right) \mod k\]
+\[a_i v_i+b=\left(d-\sum_{j\ne i} a_j v_j\right) \mod k\]
+
+This set of equations has a unique solution ($k$ is prime).
+This means there are $k^{n-1}$ choices for the other $a_j$'s and $k^{r+1}$ choices overall.
+
+\[\Pr[h(u)=c\text{ AND }h(v)=d]=\frac{1}{k^2}\]
+
+\subsubsection{Estimating Distinct Elements}
+We skipped this section, because we wanted to see a non-streaming algorithm.
+
+\subsubsection{More streaming algos}
+
+\begin{itemize*}
+  \item Graph algorithms - input is sequence of edges; questions such as "how many triangles", "max-weight matching"
+  \item Geometric algorithms - input is sequence of points; questions such as "k-center clustering"
+  \item Multiple passes
+  \item Random Order
+  \item and many more
+\end{itemize*}
+
+\subsection{Sublinear time}
+We model this with us having random access to the input.
+Time consumed should be small compared to the input (polylog).
+Sample of the input (sketch) is used to deduce approximate answer.
+Using this for decision problems is called property testing.
+
+\subsubsection{Example: Counting the fraction of 1s}
+Input is a binary string $s$ of $n$ bits.
+We need to output the fraction $\mu$of 1s in $s$.
+
+\paragraph{Algorithm}
+Return the fraction of $\mu'$ of 1s in a sample of $k$ locations chosen uniformly and independently at random.
+
+\[\Pr[|\mu'-\mu| \ge \varepsilon] \le 2e^{-2k\varepsilon^2}\quad\text{[Chernoff]}\]
+
+\subsubsection{Example: Property Testing of Monotonicity}
+A decision problem, where the input an array $s[]$ of distinct members.
+We need to output an approximate decision of whether or not the array is sorted.
+
+%TODO: insert formal definition from slide 27.
+
+A natural algorithm for this is to use the birthday paradox, but it fails horribly.
+
+\paragraph{Binary search}
+Discovered by \href{http://www.cs.columbia.edu/~rocco/Teaching/S14/Readings/EKKRV-spot-checkers.pdf}{Ergun Kannan Kumar Ravi Rubinfeld Vishwanathan}.
+Repeat $\Theta(1 / \varepsilon)$ times:
+Pick an element $x$ uniformly at random.
+Perform a binary search for $x$.
+If $x$ was not found, reject.
+If all $x$'s found, then accept.
+
+\paragraph{Claim}
+The entries for which binary search would succeed form a sorted sequence.
+\footnote{There was a proof on the whiteboard, but I missed it}
+
+% Assume the negative that there are less than $\varepsilon \cdot n$ elements for whom the binary search will fail.
+% There are at least $(1-\varepsilon)n$ elements for whom the binary search will succeed.
+% There is a sorted subsequence $ > (1-\varepsilon)n$.
+% The array is not $\varepsilon$-far from being sorted.
+% Each experiment has succeed rate of $\varepsilon$.
+
+\subsubsection{Additional Property Testing Examples}
+
+\begin{itemize*}
+  \item Checking if an array is monotonously sorted
+  \item Checking if a string is in a regular language
+  \item Checking if a function is linear
+  \item Checking if a graph is 3-colorable
+\end{itemize*}
+
+It's interesting to note that some NP-hard problems can be tested in sublinear time, which can save us a lot of time.
+
+\section{Review}
+
+%NOTE: there was a hint that the topics in the slides in red may be more important for the exam
+
+\begin{itemize*}
+  \item Stable marriage and induction
+  \item Divide and conquer
+  \item Approximation algorithms
+  \item Structured inputs - dynamic programming and tree decompositions
+  \item Parametrized complexity - FPT, Kernalization, branching
+  \item Linear Programming - Approximation via relaxation, LP duality
+  \item Randomized algorithms - Markov and Chernoff bounds, sampling
+  \item Online algorithms
+  \item Sublinear algorithms
+\end{itemize*}
+
+\end{document}
