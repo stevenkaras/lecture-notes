@@ -1,0 +1,183 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+\usepackage{listings}
+\usepackage{tikz}
+
+\usetikzlibrary{shapes.geometric}
+\tikzset{
+  treenode/.style = {align=center, inner sep=0pt, text centered, font=\sffamily},
+  tnode/.style = {treenode, circle, black, solid, draw=black, inner sep=2pt, minimum width=1.5em},
+  subtree/.style = {draw,dashed,shape border uses incircle, isosceles triangle,shape border rotate=90, minimum height=0.5cm},
+  tnull/.style = {treenode, rectangle, draw=black, minimum width=0.5em, minimum height=0.5em},
+  level/.style = {sibling distance=2cm, level distance=1cm},
+}
+
+\title{Advanced Data Structures\\\large Lecture 12}
+\date{2017-02-02 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Shay Mozes\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\DeclareMathOperator{\LCP}{LCP}
+\DeclareMathOperator{\RMQ}{RMQ}
+\DeclareMathOperator{\SA}{SA}
+
+\begin{document}
+
+\maketitle
+
+Today we will finish up RMQ, and hopefully start covering Suffix Trees.
+
+\section{RMQ}
+
+We track the minimums of all the groups, and the minimums for each suffix/prefix.
+Preprocessing of $O(n\log n)$.
+Query time of $2$.
+
+We want to reduce the preprocessing time to be linear.
+
+By reusing the previous solution as a black box,
+we can reduce the preprocessing time to $O(n \log^* n)$ with a query time of $4$.
+
+Note that we chose to use blocks of size $\frac{1}{4}\log n$, such that $\frac{n}{x}\log\left(\frac{n}{x}\right) = O(n)$ when $x=\log n$.
+
+If we use the previous solution, we can reduce the preprocessing time even further.
+In the end, we get the inverse Ackermann function: $O(n \alpha(n))$ with a query time of $2\alpha(n)$.
+
+\subsection{Linear preprocessing solution}
+
+Reduce from RMQ to LCA back to RMQ.
+Each block can be reduced further to a vector of $\pm1$ elements.
+Note that there are $2^{1/4 \log n}=n^{1/4}$ possible block configurations.
+This gives us $n^{\frac{1}{4}} \cdot \left(\frac{1}{4}\log n \right)^2=O(n)$ to build the prefix/suffix tree.
+We can then track the type of the blocks in a lookup table.
+This gives us a query time of $4$.
+
+Note that in our solution, we can just as easily use a different block size smaller than $\log n$ by any $\varepsilon$.
+
+\subsection{Practical concerns}
+More practically, this means running DFS, which is inefficient in practical terms (doesn't parallelize, cache-misses).
+Examine the Cartesian trees that we build as part of the reduction to LCA.
+The shapes of the trees are largely reused, so we can reduce the shape of the trees to binary numbers.
+The bound on the number of such shapes is $2^{2n}=4^n$, although theoretically a stricter bound is possible using Catalan numbers.
+This gives us a bound on the number of shared block shapes: $4^{1/4 \log n}=\sqrt{n}$.
+
+\section{String/Pattern Matching}
+
+One shot solution of $O(|T|+|P|)$\footnote{[Knuth, Morris, Pratt - 1977]; [Boyer, Moore - 1977]; [Karp, Rabin - 1987]}.
+
+We want to study data structures that preprocesses the text in $O(|T|)$ and answers queries in $O(|P|)$.
+
+\section{Trie}
+Dictionary data structure implemented as a rooted tree.
+Each node has up to $|\Sigma|+1$ children.
+Root to leaf path gives a word from the dictionary.
+Each word ends with a \$ symbol to distinguish prefixes.
+Left to right traversal of the leaves gives us a sorted list of the words.
+
+\paragraph{Space}
+$O(n)$ nodes, where $n$ is the sum of the word lengths.
+Each node stores $|\Sigma|+1$ entries.
+Total space: $O(n|\Sigma|)$.
+
+We can reduce the space further by using BSTs instead of arrays for each node.
+
+\paragraph{Compressed Trie}
+By combining paths keyed by the first character, we can save a lot of space.
+
+\section{Suffix Tree}
+
+\paragraph{Space}
+$O(|T|\cdot |\Sigma|)$, but $\Sigma$ is constant, so $O(|T|)$.
+
+\paragraph{Construction}
+$O(|T|+sort(\Sigma))$ construction time. $O(|T|)$ when $|T|\gg |\Sigma|$.
+
+\paragraph{Query}
+$O(|P|)$
+
+\subsection{Structure}
+Compressed trie of all $|T|+1$ suffixes "T\$".
+$|T|+1$ leaves.
+Edge label is the substring of $T$, so we can store pointers to within $T$.
+
+A full proof is left as an exercise to the reader.
+
+\subsection{Query}
+Find all the appearances of a substring in the text:
+Find/Count the leaves in the subtree of the prefix.
+
+\paragraph{Generalized multi document search}
+Concatenate multiple documents $D1\#D2\#...\#Dk$.
+The separator character $\# \notin \Sigma$.
+
+How many documents does P appear in?
+
+Find the largest substring of $T$ in $T'$.
+
+\section{Suffix Array}
+Suffix tree leaves sorted left to right.
+A lexicographical ordering of the suffixes.
+
+For example, for the text "banana":
+\begin{tabu} to \linewidth {ccccccc}
+  b & a & n & a & n & a & \$ \\
+  6 & 5 & 3 & 1 & 0 & 4 & 2
+\end{tabu}
+
+We can perform a binary search for query strings in this array: $O(|P|\log |T|)$ to find $P$ in $T$.
+
+Goes together with a Longest-Common-Prefix array:
+$\LCP[i]=$ the length of the longest common prefix of the i-th and i+1-th suffix in order.
+
+Note: $\LCP[i]=\RMQ(\LCP[i],...,\LCP[j])$.
+
+\paragraph{All together now!}
+$\RMQ + \LCP + \SA \Rightarrow O(|P|+\log |T|)$ to search for $P$ in $T$.
+
+The binary search can be aided by using the $\LCP$ as a comparison key for the binary search.
+
+\subsection{Kangaroo method}
+For "fuzzy" searching with $k$-mismatches.
+
+Create a suffix tree/array for $s=P\#T$
+
+Check $P$ at each location $i$ of $T$ by kangarooing.
+
+We compare, and are willing to skip over $k$ $\LCP$ mismatches.
+
+\subsection{Reduction to Suffix Tree}
+Reduction from Suffix Tree to Suffix Array is trivial: in-order traversal, writing the leaves/LCP.
+
+The full transformation is in the slides, but we did not cover it.
+
+\section{Exam}
+
+The course is based on similar courses at MIT and Haifa.
+Sample exams can be found there.
+True/False questions are a good measure of our knowledge of the material, and we should expect this on the exam.
+Open questions are less interesting, but there will be similar questions.
+The solutions from Haifa are only the most basic solution.
+
+If needed, additional office hours can be set by appointment.
+
+\end{document}
