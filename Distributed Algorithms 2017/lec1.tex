@@ -1,0 +1,261 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts,amssymb}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+\usepackage{tkz-graph}
+\usepackage{listings}
+
+\title{Distributed Algorithms\\\large Lecture 1}
+\date{2017-03-29 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Gadi Taubenfeld\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\begin{document}
+
+\maketitle
+
+\section{Administrative Minutiae}
+
+Attendence is not enforced, but is absolutely recommended.
+
+\subsection{Exam - 70\% of grade}
+
+\subsection{Homeworks - 30\% of grade}
+3 theoretical homeworks.
+Done individually, not in pairs.
+Strictly enforced late policies.
+Homeworks are not necessary to take exam.
+
+\section{Course Material}
+
+\subsection{Shared memory model}
+This section of the course will be covered through the textbook.\footnote{Synchronization Algorithms and Concurrent Programming, Gadi Taubenfeld, Prentice Hall}
+
+\subsection{Message passing}
+This section of the course will be covered through papers and notes.
+
+
+\clearpage
+\section{Synchronization}
+
+Two basic types of synchronization: contention and coordination.
+In contention, actors are contending over limited shared resources (mutual exclusion).
+Coordination is building consensus between actors.
+
+Synchronziation is easy between humans, but the communication between computers is restricted: reading/writing notes; sending/receiving messages.
+
+\subsection{The Too-much-milk problem}
+A couple living together always want to have milk in their kitchen.
+They want to avoid having too much milk, because it will go bad before they drink it.
+An example is given on slide 5 of how too much milk can be bought if they don't communicate.
+
+\paragraph{Correctness}
+We need to satisfy these constraints to prove correctness:
+
+\begin{itemize*}
+  \item Mutual exclusion - only one actor performs the action.
+  \item Progress - at least one actor will eventually perform the action
+\end{itemize*}
+
+If you can summarize the requirements for a problem, and you're missing one or the other, then you probably defined your problem wrong.
+
+\paragraph{Primitives}
+
+\begin{itemize*}
+  \item Set a flag
+  \item Read a single flag
+  \item Remove a flag
+\end{itemize*}
+
+\paragraph{A bad solution}\ \\
+
+\begin{lstlisting}[frame=L]
+Milk():
+  leave note with my name
+  if no note with other name:
+    if no milk:
+      buy milk
+  remove note with my name
+\end{lstlisting}
+
+If both people execute this at the same time, the same steps, they will never buy milk, even if they need it, violating the principle of progress.
+
+\paragraph{Another bad solution}\ \\
+
+\begin{lstlisting}[frame=L]
+Milk():
+  if no note:
+    if no milk:
+      leave a note
+      buy milk
+      remote the note
+\end{lstlisting}
+
+This trivially results in a violation of mutual exclusion.
+
+\paragraph{Yet another bad solution}\ \\
+
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[frame=L]
+leave note with A
+wait while a note with B
+if no milk:
+  buy milk
+
+remove note with A
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[frame=L]
+leave note with B
+if no note with A:
+  if no milk:
+    buy milk
+
+remove note with B
+\end{lstlisting}
+\end{minipage}
+
+This requires a timing assumption, and can cause a fairness issue where A is blocked indefinitely.
+
+\paragraph{A correct solution}
+
+Using 4 notes: A1, A2, B2, B1. The code is almost symmetric:
+
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[frame=L]
+write A1
+write A2 if B2 else remove A2
+wait while B1 and
+  ((A2 and B2) or
+  (no A2 and no B2))
+
+buy milk if no milk
+
+remove A1
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[frame=L]
+write B1
+write B2 if no A2 else remove B2
+wait while A1 and
+  ((A2 and no B2) or
+  (no A2 and B2))
+
+buy milk if no milk
+
+remove B1
+\end{lstlisting}
+\end{minipage}
+
+If we add another actor, we can extend this algorithm further.
+
+\subsection{An atomic register}
+
+$x$ is an atomic register, initially 0.
+
+\begin{lstlisting}[frame=L]
+for i = 1 to 5:
+  x = x + 1
+\end{lstlisting}
+
+After running two actors with this code, x can take any value between 2 and 10.
+
+\subsection{The Two-Generals Problem}
+
+First presented by Jim Gray\footnote{\textit{Notes on Data Base Operating Systems}, 1978 pages 465-466}
+
+The blue army has surrounded the red army on both sides.
+If the blue armies attack at the same time, they win.
+If they attack at different times, the red army wins.
+
+There is no \textbf{fixed length} protocol that solves this problem.
+Proof in the slides.
+
+\subsection{Contention}
+
+Summary of topics that may be covered in the course (not necessarily all)
+
+\begin{itemize*}
+  \item Mutual Exclusion
+  \item Non/Blocking synchronization - concurrent data structures
+  \item Coarse-grained locking
+  \item Fine-grained locking - deadlocking
+\end{itemize*}
+
+\subsection{Coordination}
+
+\subsubsection{Consensus}
+Covered in chapter 9 of the book.
+
+\paragraph{Impossibility of consensus}
+There is no algorithm that solves the consensus problem using atomic read/write registers in the presence of a single faulty actor. We will cover a full proof of this later in the course.
+
+\subsubsection{Barrier Synchronization}
+Covered in chapter 5 of the book.
+Set a barrier that all the actors must reach before continuing onwards.
+
+\paragraph{Example: Prefix sum}
+Slides.
+
+\subsubsection{Leader election}
+Not covered in the textbook.
+$O(n \log n)$ messages is possible.
+
+\subsubsection{Distributed graph algorithms}
+
+\paragraph{Minimum weighted spanning tree}
+$O(n \log n + E)$ solution is possible. MIS, BFS, etc...
+
+\paragraph{Snapshot}
+How to learn about the global state of the network from the local state of each actor.
+Used for deadlock detection, termination detection, etc.
+
+\subsubsection{Renaming}
+Slides.
+
+\subsubsection{Clock synchronization}
+Trying to have multiple actors show more or less the same time on their clocks.
+
+\section{Model of computation}
+
+\subsection{Relative power of communication primitives}
+
+More powerful primitives give more powerful tools.
+
+\begin{itemize*}
+  \item safe registers
+  \item atomic registers (read/write)
+  \item test \& set
+  \item swap
+  \item compare and swap
+  \item load-link/store-conditional
+  \item read-modify-write
+  \item semaphore
+  \item monitor
+\end{itemize*}
+
+\section{Next time}
+
+Mutual exclusion
+
+\end{document}
