@@ -1,0 +1,129 @@
+\documentclass[a4paper]{article}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts,amssymb}
+\usepackage{mathtools}
+\usepackage[iso]{datetime}
+\usepackage{tabu}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=black]{hyperref}
+\usepackage{tkz-graph}
+\usepackage{listings}
+
+\title{Distributed Algorithms\\\large Lecture 2}
+\date{2017-04-05 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Gadi Taubenfeld\\Typeset by Steven Karas}
+
+\newenvironment{itemize*}%
+  {\begin{itemize}%
+    \setlength{\itemsep}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{itemize}}
+
+\newenvironment{enumerate*}%
+  {\begin{enumerate}%
+    \setlength{\itemsep}{0.5pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\parskip}{0pt}}%
+  {\end{enumerate}}
+
+\begin{document}
+
+\maketitle
+
+\section{Mutual Exclusion}
+
+First defined by Dijkstra in 1965.
+
+\paragraph{Critical Section}
+We describe the \textbf{critical section} as the portion of the code that uses a limited resource and should only be executed by one process at a time.
+
+\paragraph{Requirement: Mutual Exclusion}
+No two processes execute the critical section simultaneously.
+
+\paragraph{Requirement: Deadlock Freedom}
+If a process enters the locking code, at least one process (not necessarily the same one) must move on to the critical section eventually.
+
+\paragraph{Requirement: Starvation Freedom}
+If a process enters the locking code, it must eventually move onto the critical section.
+
+All of these properties are closed under composition.
+When composing a starvation free function over a deadlock free function, the result is starvation free.
+
+\subsection{Peterson's Algorithm}
+
+Presented by \href{http://cs.nyu.edu/~lerner/spring12/Read03-MutualExclusion.pdf}{Peterson in 1981}.
+
+\noindent\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[frame=L]
+Thread 0
+flag[0] = true
+turn = 1
+while (flag[1] and turn = 1):
+  sleep
+CRITICAL SECTION
+flag[0] = false
+\end{lstlisting}
+\end{minipage}\hfill
+\begin{minipage}{.45\textwidth}
+\begin{lstlisting}[frame=L]
+Thread 1
+flag[1] = true
+turn = 0
+while (flag[0] and turn = 0):
+  sleep
+CRITICAL SECTION
+flag[1] = false
+\end{lstlisting}
+\end{minipage}
+
+This algorithm has the properties of mutual exclusion and starvation freedom.
+
+\paragraph{Safe Registers}
+Safe registers provide a relaxed model for memory access, where reads and writes are not atomic. Concurrent reads with writes can return any values that are valid during the read (all overlapping writes and the previous value).
+
+Under this model, the algorithm still provides starvation freedom.
+
+\paragraph{Adaptation for single-writer registers}
+If we modify the multi-writer register \textit{turn} such that it is two registers that are written by each thread, we can define a mapping such that the value is equivalent to 0 if they are equal and 1 if they are different.
+
+\paragraph{Contention free time complexity}
+4 memory accesses in the preamble code.
+As an exercise, it may be possible to reduce this to 3.
+
+\paragraph{Process time complexity}
+Unbounded. More importantly, every two-process locking algorithm is unbound\footnote{Proof from 1992 in book section 3.2.5}
+
+\paragraph{Extending this to multiple processes}
+Use a tournament algorithm to provide $O(\log n)$ for contention free complexity.
+
+\section{Shared Memory Models}
+
+\subsection{Simple shared memory}
+All processes access the shared memory in the same way with the same cost.
+May be atomic or only safe.
+
+\subsection{Coherent Caching}
+Each process has a cache, which may be marked as dirty.
+Accessing the cache is much cheaper than the shared memory.
+
+\subsection{Distributed Shared Memory}
+Each process has attached memory, and directly accesses other processes' memory.
+Peterson is very inefficient for this, but there exist some that are very good.
+
+
+\section{Computational Time Models}
+
+\subsection{Synchronous}
+Extremely powerful, but unrealistic.
+
+\subsection{Partially Synchronous}
+
+\subsection{Asynchronous}
+Less powerful, but very realistic.
+
+\paragraph{Note}
+I left the lecture at this point.
+
+\end{document}
