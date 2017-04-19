@@ -1,0 +1,198 @@
+\documentclass{idc_msc}
+
+\title{Distributed Algorithms\\\large Lecture 3}
+\date{2017-04-19 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Gadi Taubenfeld\\Typeset by Steven Karas}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Distributed Algorithms, taught by Dr. Gadi Taubenfeld at IDC Herzliyah in the spring semester of 2017.
+Sections may be based on the lecture slides and accompanying book written by Dr. Gadi Taubenfeld.
+
+\paragraph{HW1}
+The first homework was published on the site, and is due on May 11th (3 weeks).
+It is strongly recommended to not wait to start the homework, as some of the questions require some time to think about solutions.
+
+\section{Mutual Exclusion}
+
+\subsection{Review}
+
+\begin{description}
+  \item[Mutual Exclusion] the property that no two processes enter the critical section.
+  \item[Deadlock-Freedom] the property that if n processes are blocked, at least 1 process must continue to the critical section.
+  \item[Starvation-Freedom] the property that if a process begins the locking code, it must eventually continue to the critical section. This implies deadlock freedom.
+  \item[FIFO] The property that processes execute the critical section in the order that they arrived at the locking code.
+\end{description}
+
+\subsection{Bakery algorithm}
+
+Invented by Leslie Lamport in 1973, \href{http://research.microsoft.com/users/lamport/pubs/bakery.pdf}{published} in 1974.
+Provides mutex and FIFO.
+However, number[i] is unbounded.
+Works with safe registers, where concurrent reads may return an arbitrary value.
+
+\begin{lstlisting}[frame=L,mathescape=true,title={For processes $i=1...n$}]
+choosing[i] = true
+number[i] = 1 + $\max(\text{number}[j] | 1 \le j \le n)$
+choosing[i] = false
+for j in 1...n:
+  await choosing[j] = false
+  await (number[j] = 0) or (number[j], j) $\ge$ (number[i], i)
+
+CRITICAL SECTION
+
+number[i] = 0
+\end{lstlisting}
+
+\subsubsection{Finding the max}
+
+\begin{lstlisting}[frame=L,mathescape=true,title={For processes $i=1...n$}]
+number[i] = 1 + $\max(\text{number}[j] | 1 \le j \le n)$
+
+local1 = 0
+for local2 in 1...n:
+  local3 = number[local2]
+  if local1 < local3:
+    local1 = local3
+
+number[i] = 1 + local1
+\end{lstlisting}
+
+\paragraph{A possible solution}
+If we replace the $<$ with $\le$, this may work, however in many years no one has provided a counterexample.
+
+\subsection{Black white bakery}
+
+Invented by Dr. Gadi Taubenfeld in \href{https://www.cs.tau.ac.il/~afek/gadi.pdf}{2004}.
+Provides FIFO, in bounded space + one bit.
+
+\begin{lstlisting}[frame=L,mathescape=true,title={For processes $i=1...n$}]
+choosing[i] = true
+mycolor[i] = color
+number[i] = 1 + $\max\{\text{number}[j] | (1 \le j \le n) \land (\text{mycolor}[j] = \text{mycolor}[i]) \}$
+choosing[i] = false
+for j in 0...n:
+  await choosing[j] = false
+  if mycolor[j] = mycolor[i]:
+    await ($\text{number}[j] = 0$) or $(\text{number}[j], j) \ge (\text{number}[i], i)$ or $\text{mycolor}[j] \ne \text{mycolor}[i]$
+  else:
+    await ($\text{number}[j] = 0$) or $\text{mycolor}[j] \ne \text{color}$ or $\text{mycolor}[j] = \text{mycolor}[i]$
+
+CRITICAL SECTION
+
+if mycolor[i] = black:
+  color = white
+else:
+  color = black
+number[i] = 0
+\end{lstlisting}
+
+\paragraph{Single writer bits}
+There is a question if the multi-writer bit for the color can be replaced with single-writer bits (using parity).
+The answer is on page 57 of the book.
+
+\clearpage
+\subsection{Lower bound on space usage}
+
+\paragraph{Theorem:}
+Any deadlock-free mutual exclusion algorithm for n processes using only SWMR registers must use at least n such registers.
+
+\paragraph{Proof:}
+Before entering its critical section, a process must write at least once; ... $\blacksquare$
+
+Note that it is not possible to do better with MWMR registers.
+
+\subsection{Upper bound on space usage}
+
+\paragraph{Theorem:}
+There is a deadlock-free mutual exclusion algorithm for n processes that uses n shared bits.
+
+\paragraph{The One-bit algorithm}
+
+Provides mutual exclusion and deadlock freedom.
+Does not prevent starvation.
+It is not fast, nor is it symmetrical.
+However, it is space optimal.
+
+\begin{lstlisting}[frame=L,mathescape=true,title={For processes $i=1...n$}]
+until b[i] = true:
+  b[i] = true; j = 1;
+  while (b[i] = true) and (j < i):
+    if b[j] = true:
+      b[i] = false; await b[j] = false
+    j += 1
+
+for j = i+1...n:
+  await b[j] = false
+
+CRITICAL SECTION
+
+b[i] = false
+\end{lstlisting}
+
+\clearpage
+\subsection{Binary Semaphores}
+
+\paragraph{down(S)}
+If S > 0, then S = 0.
+Otherwise, the process is blocked until the value becomes greater than 0.
+Testing and decrementing are executed atomically together.
+
+\paragraph{up(S)}
+S = 1.
+
+\subsubsection{Types of semaphores}
+
+\begin{description}
+  \item[unfair] - lacks starvation freedom
+  \item[weak] - starvation freedom
+  \item[strong] - FIFO
+\end{description}
+
+\subsubsection{Deadlock-freedom with semaphores}
+
+\begin{lstlisting}[frame=L,mathescape=true,title={For processes $i=1...n$}]
+down(S)
+CRITICAL SECTION
+up(S)
+\end{lstlisting}
+
+\subsubsection{Starvation-freedom with semaphores}
+This is done in constant space.
+The basic idea is the first process to lock the semaphore redirects all future processes to the other semaphore, and waits until all the other processes waiting on its semaphore have finished their work in the critical section.
+\footnote{Gadi mentioned that analyzing this algorithm with some minor changes is a typical HW/Exam problem.}
+
+\begin{lstlisting}[frame=L,mathescape=true,title={For processes $i=1...n$}]
+myqueue = queue
+down(S.myqueue)
+if queue = myqueue:
+  otherqueue = 1 - myqueue
+  down(S.otherqueue)
+  queue = otherqueue
+  empty = false
+  until empty:
+    empty = true
+    up(S.myqueue)
+    down(S.myqueue)
+
+  CRITICAL SECTION
+
+  up(S.otherqueue)
+else:
+  empty = false
+  CRITICAL SECTION
+
+up(S.myqueue)
+\end{lstlisting}
+
+\section{Exam structure}
+He mentioned that the exam is typically 4 questions.
+
+\section{Next Week}
+???
+
+\end{document}
