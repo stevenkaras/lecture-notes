@@ -1,0 +1,146 @@
+\documentclass{idc_msc}
+
+\title{Distributed Algorithms\\\large Lecture 4}
+\date{2017-04-26 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Gadi Taubenfeld\\Typeset by Steven Karas}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Distributed Algorithms, taught by Dr. Gadi Taubenfeld at IDC Herzliyah in the spring semester of 2017.
+Sections may be based on the lecture slides and accompanying book written by Dr. Gadi Taubenfeld.
+
+\section{Leader Election}
+
+Leaders are special processes that can perform globally correct actions such as breaking deadlocks, allocating shared resources, collect global data about the network.
+
+\paragraph{Potential Assumptions}
+
+\begin{itemize*}
+  \item Asynchronous (no assumptions about time/speed) or synchronous?
+  \item Unique identifiers?
+  \item Process topology
+  \item Global ``direction''
+  \item Perfect knowledge of number of processes
+  \item Message delivery order
+  \item Are failures possible?
+  \item Starting state
+\end{itemize*}
+
+\subsection{A trivial algorithm for ring leader election}
+
+\paragraph{Model}
+
+\begin{itemize*}
+  \item Asynchronous network
+  \item Unique identifiers
+  \item Unidirectional ring topology
+  \item Number of processes is unknown
+  \item FIFO message delivery
+  \item No failures (processes, links, messages)
+  \item Starting condition: spontaneous, or upon message delivery.
+\end{itemize*}
+
+\paragraph{A trivial algorithm}
+
+This algorithm was presented by \href{https://www-rocq.inria.fr/novaltis/publications/IFIP%20Congress%201977.pdf}{G. LeLann in 1977}, and provides leader election in $O(n^2)$ messages.
+
+\begin{lstlisting}[frame=L,mathescape=true,title={For processes $i=1...n$}]
+self.others = []
+Send your id to your neighbor
+Each time a message is received:
+  if self.id != message.id:
+    self.others.append(message.id)
+    forward message
+  else:
+    if max(self.others) == self.id:
+      self.is_leader = True
+    else:
+      self.is_leader = False
+\end{lstlisting}
+
+A correct algorithm for a unidirectional ring is also correct for a bidirectional ring with a sense of direction.
+A correct algorithm for a unidirectional ring is not necessarily correct for a bidirectional ring without a sense of direction.
+A correct algorithm for an unknown number of processes is also correct when the number of processes is known.
+
+In this case, this algorithm is not correct for a bidirectional ring without a sense of direction.
+For example, take two processes. The theoretical leader's first message is delayed, and the other
+
+There is no deterministic algorithm for electing a leader when there are no unique identifiers.
+
+\subsection{An improved algorithm}
+
+% I got a blast of text messages about a server that crashed at work and was not able to keep track of what was going on.
+
+\subsection{An even better algorithm}
+This algorithm was presented by \href{http://dl.acm.org/citation.cfm?id=357194}{Gary L. Peterson in 1982}.
+Provides leader election in $O(n \log n)$ messages.
+
+\paragraph{Model}
+
+\begin{itemize*}
+  \item Asynchronous network
+  \item Unique identifiers
+  \item Bidirectional ring without a sense of direction
+  \item Number of processes is unknown
+  \item FIFO message delivery
+  \item No failures (processes, links, messages)
+  \item Starting condition: spontaneous, or upon message delivery.
+\end{itemize*}
+
+% I got yet another blast of messages about the crashed server. I caught the gist of it, and I'll fill in the details later
+
+\paragraph{Bidirectional variant}
+
+% gets the two neighbors and makes a local decision about it being the leader or not. If not, turns into a relay.
+% repeat until only one remains
+
+\paragraph{Unidirectional algorithm}
+
+% get two prior neighbors. Makes the same local decision as before, but assumes the label of the previous neighbor.
+% repeat until only one remains
+% basic approach shifts decision to another node.
+
+% In order to handle the case of two processes, a process replaces an id lower than its own with itself (so 8 will replace 5 with 8 to send on)
+
+\begin{lstlisting}[frame=L,mathescape=true,title={For processes $i=1...n$}]
+tid = initial value
+do:
+  send(tid)
+  receive(ntid)
+  announce elected if ntid == initial value
+  send(max(tid, ntid))
+  receive(nntid)
+  announce elected if nntid == initial value
+  if ntid $\ge$ max(tid, nntid):
+    tid = ntid
+  else:
+    goto relay
+
+relay:
+do:
+  receive(ntid)
+  announce elected if ntid == initial value
+  send(ntid)
+\end{lstlisting}
+
+\paragraph{Analysis}
+Each round uses $O(n)$ messages, and reduces the potential leader pool by a factor of $3$.
+Therefore, the total messages used is $O(n \log n)$.
+A full analysis shows $2n \log n + n$ messages.
+
+\paragraph{Improved Bidirectional Variant}
+By comparing the first neighbor, we short circuit becoming a relay by performing half-turns, alternating left and right comparison.
+This makes the algorithm slightly simpler.
+
+\paragraph{Improved Unidirectional Variant}
+Simulate the previous by using the same strategy of adopting labels.
+This improves the number of messages needed to $1.44 n \log n$.
+
+\section{Next time}
+We will continue on the election problem, including the lower bound proof of $O(n\log n)$
+
+\end{document}
