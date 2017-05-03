@@ -67,13 +67,18 @@ A correct algorithm for a unidirectional ring is not necessarily correct for a b
 A correct algorithm for an unknown number of processes is also correct when the number of processes is known.
 
 In this case, this algorithm is not correct for a bidirectional ring without a sense of direction.
-For example, take two processes. The theoretical leader's first message is delayed, and the other
+For example, take two processes. The theoretical leader's first message is delayed, and the other one pushes across different links its message.
 
 There is no deterministic algorithm for electing a leader when there are no unique identifiers.
 
 \subsection{An improved algorithm}
 
-% I got a blast of text messages about a server that crashed at work and was not able to keep track of what was going on.
+% I received a blast of messages from my work about a crashed server and was unable to track this portion of the lecture.
+% I filled it in based on the content of the slides only.
+
+Basically, the same as above, but drop messages if message.id is less than self.id.
+This doesn't affect the worst time complexity, but reduces best case to $O(n)$ and average case to $O(n \log n)$.
+Even better, it makes the algorithm valid for a bidirectional ring without a sense of direction.
 
 \subsection{An even better algorithm}
 This algorithm was presented by \href{http://dl.acm.org/citation.cfm?id=357194}{Gary L. Peterson in 1982}.
@@ -91,20 +96,22 @@ Provides leader election in $O(n \log n)$ messages.
   \item Starting condition: spontaneous, or upon message delivery.
 \end{itemize*}
 
-% I got yet another blast of messages about the crashed server. I caught the gist of it, and I'll fill in the details later
-
 \paragraph{Bidirectional variant}
 
-% gets the two neighbors and makes a local decision about it being the leader or not. If not, turns into a relay.
-% repeat until only one remains
+% As I was filling this out, I got antoher blast of messages from work. I understood the gist of the algorithm in the lecture,
+% but was only able to type it up much later.
+
+Basically, each process sends its id to its neighbors, and gathers the ids of its neighbors.
+Each process then makes a decision of whether or not it will continue to the next round of selection, and if not, it turns itself into a dumb relay (just passes messages back and forth).
 
 \paragraph{Unidirectional algorithm}
 
-% get two prior neighbors. Makes the same local decision as before, but assumes the label of the previous neighbor.
-% repeat until only one remains
-% basic approach shifts decision to another node.
+% As above, this was typed up after the fact.
 
-% In order to handle the case of two processes, a process replaces an id lower than its own with itself (so 8 will replace 5 with 8 to send on)
+To convert from a bidirectional system to a unidirectional system, we simply allow a process to ``adopt'' the id of its neighbor, and repeat the process as above, but shifting the process identities by one each time (so each process makes the decision as if it were its prior neighbor consider itself and the two previous processes).
+
+As a special case, this does not work for a system with only two processes (or a last round with two processes).
+As such, we replace an id lower than itself with its own id to send on to the next node.
 
 \begin{lstlisting}[frame=L,mathescape=true,title={For processes $i=1...n$}]
 tid = initial value
