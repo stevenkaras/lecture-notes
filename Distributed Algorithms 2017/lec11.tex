@@ -1,0 +1,225 @@
+\documentclass{idc_msc}
+
+\title{Distributed Algorithms\\\large Lecture 11}
+\date{2017-06-21 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Gadi Taubenfeld\\Typeset by Steven Karas}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Distributed Algorithms, taught by Dr. Gadi Taubenfeld at IDC Herzliyah in the spring semester of 2017.
+Sections may be based on the lecture slides and accompanying book written by Dr. Gadi Taubenfeld.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item Barrier synchronization
+\end{itemize}
+
+\section{Barriers}
+
+\paragraph{Definition}
+A barrier is a synchronization approach for multiple processes in which execution only continues after all the processes reach the barrier point.
+
+\paragraph{Design goals}
+
+\begin{itemize}
+  \item Reusability (this is necessary for correctness)
+  \item Symmetric-ness (same amount of work for all processes)
+  \item No need for initialization
+  \item Shared space complexity
+  \item Contention complexity
+  \item Time complexity
+\end{itemize}
+
+\subsection{Fetch-and-increment Register}
+
+Provides an atomic operation that increments the register and returns the previous value.
+
+Some variants impose a modulo as part of the operation.
+
+\subsection{Await macro}
+
+Spin on a condition.
+
+\subsection{Simple barrier with an atomic counter}
+
+Using a shared fetch and increment and an atomic register, and local copies of each:
+
+\begin{lstlisting}[frame=L,mathescape=true,numbers=left,title={For process i in 0...n}]
+local.go = go
+local.counter = fetch-and-increment(counter)
+if local.counter + 1 = n:
+  counter = 0
+  go = 1 - 0
+else:
+  await(local.go != go)
+\end{lstlisting}
+
+\subsubsection{An incorrect variant}
+
+This is incorrect because a starved process can get stuck at the barrier and lead to deadlock in a second round through the same barrier.
+
+\begin{lstlisting}[frame=L,mathescape=true,numbers=left,title={For process i in 0...n}]
+local.go = go
+local.counter = fetch-and-increment(counter)
+if local.counter + 1 = n:
+  counter = 0
+  go = 1 - 0
+else:
+  await(local.go != go)
+\end{lstlisting}
+
+\subsubsection{Reducing shared memory contention}
+
+There is high contention on the go bit.
+
+We can reduce this by replacing the single bit with a set of $n$ bits, where each process $p_i$ spins only on $go[i]$.
+
+In distributed shared memory, this can reduce the remote memory accesses to $n$.
+
+\subsection{Barrier without initialization}
+
+If we are able to initialize variables, we must already have synchronization. This approach assumes no prior synchronization.
+
+\begin{lstlisting}[frame=L,mathescape=true,numbers=left,title={For process i in 0...n}]
+local.go = go
+local.counter = counter
+counter := counter + 1 (mod n)
+until local.go != go:
+  if counter = local.counter:
+    go = 1 - local.go
+\end{lstlisting}
+
+Some minor modifications can make this correct for 
+
+\subsection{Test-and-set bit}
+
+Provides two atomic operations:
+
+\textit{test-and-set} sets the bit to 1, and returns the previous value.
+
+\textit{reset} sets the bit to 0.
+
+\paragraph{test-and-test-and-set bit}
+
+Provides an atomic read operation.
+
+\subsection{Test-and-set barrier}
+
+With three shared variables: leader (test-and-set), countflag (test-and-test-and-set), and go (atomic-register).
+\marginpar{Steven: The algorithm in the slides is not correct for n=1}
+
+\begin{lstlisting}[frame=L,mathescape=true,numbers=left,title={For process i in 0...n}]
+local.go = go
+if test-and-set(leader) = 0:
+  local.counter = 0
+  until local.counter = n - 1:
+    await(countflag = 1)
+    local.counter += 1
+    reset(countflag)
+  reset(leader)
+  go = 1 - go
+else:
+  await(test-and-set(countflag) = 0)
+  await(local.go != go)
+\end{lstlisting}
+
+\subsubsection{Variant without initialization}
+
+The basic approach here is to preelect the leader and have it count each process twice (until the counter is $2n-2$).
+This ensures that at most $n-1$ processes have been counted twice, and one has been counted either once or twice.
+
+\begin{lstlisting}[frame=L,mathescape=true,numbers=left,title={For process i in 0...n}]
+local.go = go
+if i = 1:
+  local.counter = 0
+  until local.counter = 2n - 2:
+    await(countflag = 1)
+    local.counter += 1
+    reset(countflag)
+  reset(leader)
+  go = 1 - go
+else:
+  await(test-and-set(countflag) = 0)
+  await(test-and-set(countflag) = 0)
+  await(local.go != go)
+\end{lstlisting}
+
+Note this algorithm is asymmetric, which we consider to be undesireable.
+
+\subsection{Tree-based barriers}
+
+Organize the processes into a binary tree where each node is owned by a process.
+
+Each node waits for its children, and then reports to its parent.
+Once the root gets reports from both its children, it sends a message back down the tree.
+
+Another approach is to run a tournament between nodes until a root is chosen, and then continue.
+
+\begin{lstlisting}[frame=L,mathescape=true,numbers=left,title={For process i in 0...n}]
+if i = 1:
+  await(arrive[2] = 1); arrive[2] = 0
+  await(arrive[3] = 1); arrive[3] = 0
+  go[2] = 1; go[3] = 1;
+else if i $\le \frac{n-1}{2}$:
+  await(arrive[2i] = 1); arrive[2i] = 0
+  await(arrive[2i+1] = 1); arrive[2i+1] = 0
+  arrive[i] = 1
+  await(go[i] = 1); go[i] = 0
+  go[2i] = 1; go[2i+1] = 1
+else:
+  arrive[i] = 1
+  await(go[i] = 1); go[i] = 0   
+\end{lstlisting}
+
+
+\subsection{Read-modify-write Registers}
+
+A register $r$ with $n$ bits.
+Supports an atomic operation read-modify-write, which does the following atomically:
+
+\begin{lstlisting}[frame=L,mathescape=true,numbers=left]
+read-modify-write(r: register, f: function):
+  orig_r = r
+  r = f(r)
+  return orig_r
+\end{lstlisting}
+
+\subsection{See-saw barrier}
+
+Presented by \href{https://www.faculty.idc.ac.il/gadi/MyPapers/1996FMRT-wakeup.pdf}{M. J. Fischer, S. Moran, S. Rudich, and G. Taubenfeld in 1996}
+
+3 bit algorithm, but we need 2 RMW bits.
+
+The idea is that each process has 2 tokens, which can either be absorbed or emitted at a time.
+
+The seesaw has one side up and one side down.
+Each process that enters the algorithm needs to enter the seesaw on either the left or right side.
+
+The token bit has two states: no-token-present and token-present.
+
+The see-saw bit has two states: left-side-down and right-side-down.
+
+Each round, a process runs one of five rules. Once a process has gathered at least $2n$ tokens, it sets the go bit. A process that has gotten off the seesaw awaits the go bit to flip.
+
+\begin{enumerate}
+  \item if the process has never been on; save the go bit locally, get on the up side, and swing the seesaw.
+  \item if the process is on the down side, has tokens, and there is no token; emit a token to the shared state, if no tokens left, get off and swing the seesaw.
+  \item if the process is on the up side and there is a shared token; take the token.
+  \item if the process has at least $2n$ tokens, it gets off the seesaw and flips the go bit.
+  \item if the go bit has been flipped, all processes have arrived, and continues past the barrier.
+\end{enumerate}
+
+The shared memory is accessed at least $O(n)$ times, and at worst $O(n^2)$.
+
+\section{Next week}
+
+Semaphore barriers.
+
+Basically, a way to snapshot the entire system and get a consistent state.
+
+\end{document}
