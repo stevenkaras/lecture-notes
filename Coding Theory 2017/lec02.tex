@@ -1,0 +1,439 @@
+\documentclass{idc_msc}
+
+\title{Coding Theory\\\large Lecture 2}
+\date{2017-11-02 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Elette Boyle\\Typeset by Steven Karas}
+
+\newcommand{\Fq}{{\mathbb{F}_q}}
+\newcommand{\T}{{\mathpalette\raiseT\intercal}}
+\newcommand{\raiseT}[2]{\raisebox{0.25ex}{$#1#2$}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Coding Theory, taught by Dr. Elette Boyle at IDC Herzliyah in the fall semester of 2017/2018.
+Sections may be based on the lecture slides written by Dr. Elette Boyle.
+
+\paragraph{Admin}
+
+No class next week.
+A survey will go out to schedule the makeup class.
+
+A piazza forum may be opened.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item Finite Fields
+  \item Linear subspaces over finite fields
+  \item Properties of linear codes
+    \begin{itemize}
+      \item Generator Matrix G
+      \item Parity-Check Matrix H
+    \end{itemize}
+  \item Hamming Codes
+\end{itemize}
+
+\section{Review of definitions}
+
+\subsection{Code}
+
+A code of block length $n$ over an alphabet $\Sigma$ is just a subset $C \subseteq \Sigma^n$. We mark $q=|\Sigma|$
+
+Example: $\Sigma = \{0,1\}$ would be bits whereas $\Sigma = \{0,1\}^8$ would be bytes.
+
+As a special case, if $\Sigma = \{0,1\}$, we call it a binary code.
+
+An alternative view of a code is as a mapping $C : [M] \to \Sigma^n$ if $|C| = M$.
+
+\subsection{Dimension}
+
+The dimension of a code $C \subseteq \Sigma^n$ is $k = \log_q{|C|}$ where $q=|\Sigma|$.
+
+\subsection{Rate}
+
+The rate of a code with dimension $k$ and block length $n$ is $R = \frac{k}{n}$.
+
+We use the rate as a measure of the quality of the code.
+
+\subsection{Error Correction/Detection}
+
+Given a message $m$, we will add some redundancy using $C(m)$ such that $D(C(m) + e)$ where $e$ is the noise added by the communication channel hopefully maps back to $m$.
+
+\subsubsection{Encoding}
+
+Let $C \subseteq \Sigma^n$ be a code. An equivalent description of the code $C$ is by an injective mapping $E : [|C|] \to \Sigma^n$ called the encoding function.
+
+\subsubsection{Decoding}
+
+Let $C \subseteq \Sigma^n$ be a code. A mapping $D : \Sigma^n \to [|C|]$ is called the decoding function for $C$.
+
+\subsubsection{Error Correction}
+
+Let $C \subseteq \Sigma^n$ and $t \ge 1 \in \mathbb{N}$. $C$ is said to be $t$-error-correcting if there exists some decoding function $D$ such that $\forall m \in [|C|]$ and for every error pattern $e \in \Sigma^n$ with at most $t$ errors a decoding function $D(c(m) + e) = m$.
+
+\subsubsection{Error Detection}
+
+Let $C \subseteq \Sigma^n$ and $t \ge 1 \in \mathbb{N}$. $C$ is said to be $t$-error-detecting if there exists some detection function $D_{detect}$ such that $\forall m \in [|C|]$ and for every error pattern $e \in \Sigma^n$ with at most $t$ errors a detection function $D_{detect}(c(m)) = \text{accept}$, and $D_{detect}(c(m) + e) = \text{reject}$.\footnote{This definition is different from the one in the text book. The textbook definition is incorrect, as it ignores cases where the error mutates the message into another valid code word}
+
+Note: $t$-error-correcting implies $t$-error-detecting
+
+\subsection{Channel noise/Errors}
+
+When talking about errors we typically think of $\Sigma$ as having some additive structure with a $0$ element.
+We express error to a code word $c \in \Sigma^n$ as a vector $e \in \Sigma^n$, where the received (noisy) word is $y = c + e$.
+We say that $e$ has $t$ errors if the number of non-zero members of $e$ is $t$.
+
+There are many ways to model channel noise.
+
+\paragraph{Adversarial noise}
+
+Assuming any worst case error patterns, as long as the number of symbols in the error is bounded.
+
+\paragraph{Stochastic noise}
+
+Assuming the expected case. Binary symmetric channel of probability $p : 0 \le p \le 1$ called $BSC_p$; each bit is flipped with probability $p$.
+
+There are lots of different extensions of these.
+We will focus on adversarial noise.
+
+\subsubsection{Erasure}
+
+An error where the receiver knows that an error was in a given position.
+
+\subsection{Distance}
+
+First, we define a useful distance measure between vectors: the number of positions where elements differ.
+
+For some $u,v \in \Sigma^n$, the Hamming distance between $u$ and $v$, $\Delta(u,v)$ is defined to be the number of positions where $u$ and $v$ differ.
+
+\paragraph{Minimum Distance}
+
+Let $C \subseteq \Sigma^n$ be a code. The minimum distance of $C$ is $d = \min_{c \ne c' \in C} \Delta(c,c')$
+
+\paragraph{Equivalence of distance properties}
+
+The following statements are equivalent for any code $C$:
+
+\begin{enumerate}
+  \item $C$ has distance $d \ge 2$.
+  \item $C$ can correct $(d-1) / 2$ errors if $d$ is odd, or $d / 2 - 1$ errors if $d$ is even.
+  \item $C$ can detect $(d-1)$ errors.
+  \item $C$ can correct $(d-1)$ erasures.
+\end{enumerate}
+
+\clearpage
+\section{Fields}
+
+A field is an abstraction of the real numbers that captures the applicable properties.
+
+\subsection{Formal definition}
+
+A field is a \(\mathbb{F}\) is given by a 3-tuple \((S,+,\cdot)\):
+
+\begin{itemize}
+  \item \(S\) is a set containing two special elements: \(0\) and \(1\).
+  \item \(+, \cdot\) are binary operators \(\mathbb{F} \times \mathbb{F} \to \mathbb{F}\) such that the following properties hold:
+\end{itemize}
+
+\subsubsection{Closure}
+
+\(\forall a,b \in S\), \(a+b \in S\), \(a \cdot b \in S\).
+
+\subsubsection{Associativity}
+
+\(\forall a,b,c \in S\), \((a+b)+c=a+(b+c)\), \((a \cdot b) \cdot c = a \cdot (b \cdot c)\)
+
+\subsubsection{Commutativity}
+
+\(\forall a,b,c \in S\), \(a + b = b + a\), \(a \cdot b = b \cdot a\)
+
+\subsubsection{Distributivity}
+
+\(\forall a,b,c \in S\), \(a \cdot (b + c) = a \cdot b + a \cdot c\)
+
+\subsubsection{Identities}
+
+\(\forall a \in S\), \(a + 0 = a\), and \(a \cdot 1 = a\)
+
+\subsubsection{Inverses}
+
+\(\forall a \in S\), there exists a unique additive inverse \(-a\) such that \(a + -a = 0\)
+
+\(\forall b \ne 0 \in S\), there exists a unique multiplicative inverse \(b^{-1}\) such that \(b \cdot (b^{-1}) = 1\)
+
+\subsection{Finite Fields}
+
+A \strong{finite} field is a field \(\mathbb{F}=(S,+,\cdot)\) for which \(|S|\) is finite.
+We denote this as \(|\mathbb{F}|\).
+
+\subsection{Modular Arithmetic}
+
+Modular fields are a useful class of 
+
+Let \(p\) be prime:
+
+\[\mathbb{F}_p = (\{0,\ldots,p-1\}, +_p, \cdot_p)\]
+
+Where \(+_p, \cdot_p\) denote addition and multiplication modulo \(p\).
+
+For convenience, mark \(S_p=\{0,1,\ldots,p-1\}\)
+
+\subsubsection{Proof}
+
+Associativity, Commutativity, Distributivity, and Identities we get because they hold for integer arithmetic.
+
+\paragraph{Proof of closure}
+
+Because you take the remainder \(\mod p\), which brings you back to \(S_p\)
+
+\paragraph{Proof of inverses}
+
+\(\forall a \in S_p\), consider \(b = p - a \mod p\) for some \(b \in S_p\).
+
+\begin{align}
+& = a +_p b \mod p \\
+& = a +_p (p - a) \mod p \\
+& = p \\
+& = 0
+\end{align}
+
+Let \(a \ne 0 \in S_p\).
+
+We will prove there exists a unique multiplication inverse of \(a\) by showing the set \(\{a \cdot_p b\}_{b \in S_p}\) is equal to all of \(S_p\).
+
+Suppose the contrary that \(\exists b \ne b' \in S_p\) such that \(a \cdot_p b= a \cdot_p b'\).
+It follows that \(0 = (a \cdot_p b) - (a \cdot_p b') = a (b -_p b')\).
+This means that \( p \mid a (b - b')\). Note that \(a \in S_p\), so \(p \nmid a\).
+Recalling that \(b, b' \in S_p\), it follows that \(-(p-1) \le b - b' \le p-1\).
+Further, \(b \ne b'\) and \(b - b' \ne 0\), and therefore \(p \nmid (p - p')\).
+
+However, this contradicts that \(p\) is prime.
+Because \(p\) is prime, if it divides the product of \(a (b - b')\), either \(p \mid a\) or \(p \mid (b - b')\).
+
+\subsubsection{Interesting properties}
+
+The size of any finite field is a prime power: \(p^s\) for some prime \(p\) and integer \(s \ge 1\).
+
+For any prime power \(q=p^s\), there exists a \strong{unique} finite field \(\Fq\) with \(q\) elements, up to isomorphism\footnote{renaming of the elements}.
+
+\section{Linear Subspaces over Finite Fields}
+
+The punchline here is that this is bog standard linear algebra as we've seen before, but with coefficients/arithmetic over \(\Fq\) instead of \(\mathbb{R}\)
+
+\paragraph{Formal Definition}
+
+\(S \subseteq \Fq\) is a linear subspace if all the following properties hold.
+
+\subsection{Properties}
+
+\subsubsection{Closure over addition}
+
+\(\forall \vec{x}, \vec{y} \in S\), then \(\vec{x} + \vec{y} \in S\), where \(+\) means component wise addition over \(\Fq\)
+
+\subsubsection{Closure over scalar multiplication}
+
+\(\forall a \in \Fq, \vec{x} \in S\), then \(a \cdot \vec{x} \in S\), where \(\cdot\) means component wise multiplication by \(a\) over \(\Fq\).
+
+Note that this implies that the zero vector \(\vec{0}\) is contained in any linear space.
+
+\subsection{Span}
+
+Given a set of vectors \(B=\{\vec{v}_1,\ldots,\vec{v}_l\}\), the \strong{span} of \(B\) over \(\Fq\) is defined as:
+
+\[ \text{Span}(B) = \left\{ \sum_{i=1}^l a_i \vec{v}_i \middle| a_i \in \Fq;\forall 1 \le i \le l  \right\}\]
+
+\subsection{Linear Independence}
+
+We say that \(\vec{v_1}, \ldots, \vec{v}_l\) are \strong{linearly independent} over \(\Fq\) if \(\nexists a_1,\ldots,a_l \in \Fq\) such that \(a_i\) not all 0 and:
+
+\[\sum_{i=1}^l a_i \vec{v}_i = \vec{0}\]
+
+Equivalently, this means \(\forall 1 \le i \le l\), it holds that \(\vec{v}_i \notin \text{Span}(\vec{v}_1,\ldots,\vec{v}_l)\)
+
+\subsection{Rank}
+
+The \strong{rank} of a matrix in \(\Fq^{k \times n}\) is the maximum number of linearly independent rows (or columns).
+A matrix \(\Fq^{k \times n}\) with rank \(\min(k,n)\) is said to have \emph{full rank}.
+
+Note that basic facts from linear algebra such as row rank, column rank, etc hold here as well.
+
+\subsection{Properties}
+
+If \(S \subseteq \Fq^n\) is a linear subspace,
+
+\(|S|=q^k\) for some \(k \ge 0\). This \(k\) is called the dimension of \(S\).
+
+There exists \(\vec{v}_1, \ldots, \vec{v}_l \in S\) called the basis elements such that \(S = \text{Span}(\vec{v}_1,\ldots,\vec{v}_l)\).
+
+In other words, there exists a full rank matrix \(G \in \Fq^{k \times n}\) such that \(\forall \vec{x} \in S : \vec{x} = \vec{a} G\) for some coefficient vector \(\vec{a} \in \Fq^k\). This matrix \(G\) is called a generator matrix for \(S\).
+
+There exists a full rank matrix \(H \in \Fq^{(n-k)\times n}\) such that \(\forall \vec{x} \in S : \vec{x} H^\intercal= \vec{0}\).
+This matrix \(H\) is a \emph{parity check} matrix for \(S\).
+
+\(GH^\intercal = 0\)
+
+\subsection{Parity as inverse of generator}
+
+Suppose \(G \in \Fq^{k \times n}\) is a generator matrix for space \(S_1 \subseteq \Fq^n\).
+
+As a proof sketch, we need to show that \(S_1 \subseteq S_2\), and that \(\dim S_1 = \dim S_2\)
+
+
+\clearpage
+\section{Linear Codes}
+
+\paragraph{Intuition}
+
+Codes in general are just some subset of the language.
+Linear codes have a repeating, patterned structure.
+
+Linear codes will be linear subspaces over some alphabet \(\Sigma\).
+For this to make sense, \(\Sigma\) must support certain arithmetic operations (e.g. addition, multiplication, etc).
+We abstractly characterize these properties as a field.
+
+\subsection{Formal Definition}
+
+\(C \subseteq \Fq^n\) is a linear code if it is a linear subspace of \(\Fq^n\).
+
+\paragraph{Notation}
+
+If \(C \subset \Fq^n\) has dimension \(k\) and distance \(d\), we will refer to it as an \([n,k,d]_q\) code, or sometimes just a \([n,k]_q\) code\footnote{Square brackets always mean a linear code for the purposes of this course}.
+
+From the previous theorem, it follows that we can characterize a \([n,k]_q\) code \(C\) as either:
+
+\begin{itemize}
+  \item \(C\) is generated by a \(k \times n\) generator matrix \(G\)
+  \item \(C\) is characterized by a \((n-k) \times n\) parity check matrix \(H\).
+\end{itemize}
+
+This means that any \([n,k]_q\) code can be represented by \(\min (nk, n(n-k))\) elements in \(\Fq\).
+
+Encoded by translating the message \(\vec{a} \in \Fq^k\) to a codeword \(\vec{c} \in \Fq^n\) given a generator matrix \(G\) by \(O(nk)\) \(\Fq\) operations (by matrix multiplication).
+
+Error detection given the parity check matrix \(H\) by \(O(n(n-k))\) \(\Fq\) operations (by matrix multiplication): determine if \(\vec{y} \in \Fq^n\) is a valid code word.
+
+\subsection{Distance equivalence to Hamming weight}
+
+For any \([n,k,d]_q\) code \(C\):
+
+\[d = \min_{\vec{0} \ne \vec{c} \in C} wt(\vec{c})\]
+
+Where \(wt(\vec{c}) = \Delta (\vec{c}, \vec{0})\).
+
+The proof was in HW1.
+
+\subsection{Distance equivalence to parity check linear dependence}
+
+For some \([n,k,d]_q\) code \(C\) with parity-check matrix \(H\), the distance of \(C\) is the minimum number of linearly dependent columns of \(H\).
+
+The proof will be in HW2\footnote{Hint for the proof: show \(l \le d\) and \(d \le l\), and recall that \(\vec{x} \in C\) iff \(H \vec{x}^\T = \vec{0}\)}.
+
+\section{Hamming Codes}
+
+We've seen the \([7,4,3]_2\) Hamming code.
+Actually, Hamming codes form a family of codes:
+
+For any \(r \ge 2\), there exists a \([2^r-1,2^r-r-1,3]_2\) Hamming Code, defined by the parity check matrix where the columns are all the bit strings except the zero vector.
+
+\subsection{Distance 3}
+
+The \([2^r-1,2^r-r-1]_q\) Hamming Code has distance 3.
+
+\paragraph{Proof}
+
+Use the equivalence of the distance to the minimum number of linearly dependent columns.
+
+Is \(d = 1\)? No; Because \(\vec{0}\) is not a column of \(H_r\).
+
+Is \(d = 2\)? No; Because there are no two identical columns in \(H_r\).
+
+Is \(d = 3\)? Yes! Because the first three columns are linearly dependent.
+
+\subsection{Decoding}
+
+Maximum likelihood decoder is not an efficient way to decode codes (\(O(2^n)\)!).
+
+For any linear code and correcting 1 error, given a received message \(\vec{y} \in \Fq^n\):
+
+\begin{lstlisting}[frame=L,mathescape=true,title={Some code}]
+for $i$ in $1,...,n$:
+  for all possible $a_i \in \Fq$ for this position:
+    if y'=y but y_i = a_i is a valid codeword
+\end{lstlisting}
+
+This gives us complexity \(O(n^2 \log n)\).
+
+\paragraph{Hamming Codes}
+
+Let \(\vec{y} = (\vec{c} + \vec{e}_i)\).
+
+\[
+\begin{align}
+\vec{y}H^\T & = (\vec{c} + \vec{e}_i) H^\T \\
+& = \vec{c}H^\T + \vec{e}_i H^\T \\
+& = \vec{e}_i H^\T \\
+& = \vec{v}_i
+\end{align}
+\]
+
+The complexity for this is \(O(n \log n)\).
+
+\section{Examples}
+
+\subsection{Fields}
+
+\begin{itemize}
+  \item \((\mathbb{R}, +, \cdot)\) is a field.
+  \item \((\mathbb{Z}, +, \cdot)\) is not a field, because it lacks a multiplicative inverse.
+  \item \((\{0,1\}, \oplus, \land)\) is a field.
+\end{itemize}
+
+\subsection{Linear Subspaces over Finite Fields}
+
+\(S_1 \subseteq \mathbb{F}_5^3\) is:
+\[S_1 = \{(0,0,0), (1,1,1), (2,2,2), (3,3,3), (4,4,4)\}\]
+
+\(S_2 \subseteq \mathbb{F}_3^3\) is:
+\[
+  S_2 =
+  \begin{matrix}
+    \{(0,0,0) & (1,0,1) & (2,0,2) \\
+    (0,1,1) & (1,1,2) & (2,1,0) \\
+    (0,2,2) & (1,2,0) & (2,2,1)\}
+  \end{matrix}
+\]
+
+\subsection{Linear Codes}
+
+\paragraph{\([7,4,3]_2\) Hamming Code}
+
+This code from last week and the homework has:
+
+\[
+G =
+\begin{bmatrix}
+  1 & 0 & 0 & 0 & 0 & 1 & 1 \\
+  0 & 1 & 0 & 0 & 1 & 0 & 1 \\
+  0 & 0 & 1 & 0 & 1 & 1 & 0 \\
+  0 & 0 & 0 & 1 & 1 & 1 & 1
+\end{bmatrix}
+\]
+
+and
+
+\[
+H =
+\begin{bmatrix}
+  0 & 0 & 0 & 1 & 1 & 1 & 1 \\
+  0 & 1 & 1 & 0 & 0 & 1 & 1 \\
+  1 & 0 & 1 & 0 & 1 & 0 & 1 \\
+\end{bmatrix}
+\]
+
+\section{Next week}
+
+\end{document}
