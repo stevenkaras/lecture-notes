@@ -21,17 +21,33 @@
 
 % based on a4 article with wider margins
 \LoadClass[a4paper]{article}
-\RequirePackage[top=2cm,bottom=2cm,left=2cm,right=2cm]{geometry}
+\RequirePackage[top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
 
 \RequirePackage[T5]{fontenc}
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[iso]{datetime}
 
-\RequirePackage[colorlinks=true,urlcolor=blue,linkcolor=black,citecolor=black]{hyperref}
+\RequirePackage[colorlinks=true,urlcolor=blue,linkcolor=black,citecolor=black,pdfencoding=unicode,unicode,naturalnames]{hyperref}
 \RequirePackage{amsfonts,amssymb}
 \RequirePackage{mathtools}
 \RequirePackage{tabu}
 \RequirePackage{listings}
+\RequirePackage{accsupp}
+
+\inputencoding{utf8}
+
+%=====================================================================
+% Metadata
+%=====================================================================
+
+\AtBeginDocument{
+  \hypersetup{
+    pdfinfo={
+      Title={\@title},
+      Author={\@author},
+    }
+  }
+}
 
 %=====================================================================
 % Options
@@ -51,7 +67,62 @@
   \endgroup
 }
 
-% A √ariant of itemize with tighter spacing
+% Strong emphasis (boldface)
+\DeclareTextFontCommand{\strong}{\st}
+\DeclareRobustCommand\st{\@nomath\st \ifdim \fontdimen\@ne\font >\z@\stinnershape \else \bfseries \fi}
+\def\stinnershape{\mdseries}
+
+% General maths
+\newcommand{\underrel}[2]{\mathrel{\mathop{#2}\limits_{#1}}} % e.g. \underrel{x}{explanation}
+
+% Statistics
+\newcommand{\mean}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\E}{E}
+\DeclareMathOperator{\loglikely}{\mathcal{L}}
+
+%=====================================================================
+% Style changes
+%=====================================================================
+\pdfstringdefDisableCommands{%
+  \def\\{}%
+  \let\textsubscript\relax%
+}
+
+% set listings style - copy pasteable text
+\lstset{
+  frame=L,
+  mathescape=true,
+  basicstyle=\ttfamily,
+  numberstyle=\tiny\noncopynumber,
+  columns=flexible,
+}
+
+\newcommand{\noncopynumber}[1]{
+  \protect
+  \BeginAccSupp{method=escape,ActualText={}}
+  #1
+  \protect
+  \EndAccSupp{}
+}
+
+% tighten the spacing for itemize and enumerate
+\let\idcmscOLDitemize\itemize
+\renewcommand\itemize{%
+  \idcmscOLDitemize%
+  \setlength{\itemsep}{0pt}%
+  \setlength{\parsep}{0pt}%
+  \setlength{\parskip}{0pt}}
+
+\let\idcmscOLDenumerate\enumerate
+\renewcommand\enumerate{%
+  \idcmscOLDenumerate%
+  \setlength{\itemsep}{0pt}%
+  \setlength{\parsep}{0pt}%
+  \setlength{\parskip}{0pt}}
+
+% TODO: remove these once I've migrated to regular lists
+% A variant of itemize with tighter spacing
 \newenvironment{itemize*}%
   {\begin{itemize}%
     \setlength{\itemsep}{0pt}%
@@ -66,3 +137,8 @@
     \setlength{\parsep}{0pt}%
     \setlength{\parskip}{0pt}}%
   {\end{enumerate}}
+
+
+% This package makes changes to the enumerate command which I didn't wrap perfectly for my style changes,
+% so it needs to be down here
+\RequirePackage{enumitem}
