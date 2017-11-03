@@ -5,8 +5,6 @@
 \author{Lecture by Dr. Elette Boyle\\Typeset by Steven Karas}
 
 \newcommand{\Fq}{{\mathbb{F}_q}}
-\newcommand{\T}{{\mathpalette\raiseT\intercal}}
-\newcommand{\raiseT}[2]{\raisebox{0.25ex}{$#1#2$}}
 
 \begin{document}
 
@@ -194,12 +192,14 @@ Because you take the remainder \(\mod p\), which brings you back to \(S_p\)
 
 \(\forall a \in S_p\), consider \(b = p - a \mod p\) for some \(b \in S_p\).
 
-\begin{align}
+\[
+\begin{aligned}
 & = a +_p b \mod p \\
 & = a +_p (p - a) \mod p \\
 & = p \\
 & = 0
-\end{align}
+\end{aligned}
+\]
 
 Let \(a \ne 0 \in S_p\).
 
@@ -271,10 +271,10 @@ There exists \(\vec{v}_1, \ldots, \vec{v}_l \in S\) called the basis elements su
 
 In other words, there exists a full rank matrix \(G \in \Fq^{k \times n}\) such that \(\forall \vec{x} \in S : \vec{x} = \vec{a} G\) for some coefficient vector \(\vec{a} \in \Fq^k\). This matrix \(G\) is called a generator matrix for \(S\).
 
-There exists a full rank matrix \(H \in \Fq^{(n-k)\times n}\) such that \(\forall \vec{x} \in S : \vec{x} H^\intercal= \vec{0}\).
+There exists a full rank matrix \(H \in \Fq^{(n-k)\times n}\) such that \(\forall \vec{x} \in S : \vec{x} H^\T= \vec{0}\).
 This matrix \(H\) is a \emph{parity check} matrix for \(S\).
 
-\(GH^\intercal = 0\)
+\(GH^\T = 0\)
 
 \subsection{Parity as inverse of generator}
 
@@ -362,7 +362,7 @@ For any linear code and correcting 1 error, given a received message \(\vec{y} \
 \begin{lstlisting}[frame=L,mathescape=true,title={Some code}]
 for $i$ in $1,...,n$:
   for all possible $a_i \in \Fq$ for this position:
-    if y'=y but y_i = a_i is a valid codeword
+    if $y'=y$ but $y_i = a_i$ is a valid codeword
 \end{lstlisting}
 
 This gives us complexity \(O(n^2 \log n)\).
@@ -372,12 +372,12 @@ This gives us complexity \(O(n^2 \log n)\).
 Let \(\vec{y} = (\vec{c} + \vec{e}_i)\).
 
 \[
-\begin{align}
+\begin{aligned}
 \vec{y}H^\T & = (\vec{c} + \vec{e}_i) H^\T \\
 & = \vec{c}H^\T + \vec{e}_i H^\T \\
 & = \vec{e}_i H^\T \\
 & = \vec{v}_i
-\end{align}
+\end{aligned}
 \]
 
 The complexity for this is \(O(n \log n)\).
@@ -435,5 +435,7 @@ H =
 \]
 
 \section{Next week}
+
+There will not be a lecture next week.
 
 \end{document}
