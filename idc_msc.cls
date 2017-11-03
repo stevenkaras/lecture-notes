@@ -74,6 +74,8 @@
 
 % General maths
 \newcommand{\underrel}[2]{\mathrel{\mathop{#2}\limits_{#1}}} % e.g. \underrel{x}{explanation}
+\newcommand{\T}{{\mathpalette\raiseT\intercal}} % e.g. F^\T
+\newcommand{\raiseT}[2]{\setbox0\hbox{$#1{#2}$}\raise\dp0\box0}
 
 % Statistics
 \newcommand{\mean}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
@@ -86,7 +88,6 @@
 %=====================================================================
 \pdfstringdefDisableCommands{%
   \def\\{}%
-  \let\textsubscript\relax%
 }
 
 % set listings style - copy pasteable text
