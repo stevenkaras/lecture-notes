@@ -138,16 +138,16 @@ F_{\vec{m}}(x) + F_{\vec{m'}}(x)
 \end{aligned}
 \]
 
-For any \(a \in \Fq\), \(aF_{\vec{m}}(x) = F_{a \vec{m}}(x)\).
+Similarly, for any \(a \in \Fq\), \(aF_{\vec{m}}(x) = F_{a \vec{m}}(x)\).
 
 This implies:
 
 \[
 \begin{aligned}
 \RS(\vec{m}) + \RS(\vec{m'})
-& = (F_{\vec{m}}(\alpha_1),\ldots) + (\ldots) \\
+& = (F_{\vec{m}}(\alpha_1),\ldots) + (F_{\vec{m'}}(\alpha_1),\ldots) \\
 & = (F_{\vec{m}} + F_{\vec{m'}}(\alpha_1),\ldots) \\
-& = (F_{\vec{m} + \vec{m'}}(\alpha_1),\ldots) + (\ldots) \\
+& = (F_{\vec{m} + \vec{m'}}(\alpha_1),\ldots) \\
 & = \RS(\vec{m} + \vec{m'})
 \end{aligned}
 \]
@@ -185,7 +185,7 @@ Both of these polynomials are of degree \(\le k-1\).
 \]
 
 We know that \(F_{\vec{m} - \vec{m'}}\) is not the zero polynomial.
-We also know that \(F_{\vec{m} - \vec{m'}}\) has degree \(\le k\), because \(F_{\vec{m} - \vec{m'}} = F_{\vec{m}} - F_{\vec{m'}}\).
+We also know that \(F_{\vec{m} - \vec{m'}}\) has degree \(\le k - 1\), because \(F_{\vec{m} - \vec{m'}} = F_{\vec{m}} - F_{\vec{m'}}\).
 From earlier, we know that the number of roots of \(F_{\vec{m} - \vec{m'}}\) is \(\le (k-1)\).
 
 \[
@@ -265,7 +265,7 @@ For any \(s \ge 2\) and \(\Fq[p]\) prime, there exists an irreducible polynomial
 In fact, the number of such irreducible polynomials is \(\Theta\left(\frac{p^2}{s}\right)\).
 
 Note that given a polynomial \(F(x)\) of degree \(s\), then we can efficiently\footnote{The proof is interesting, and it is recommended to read up on it later.} determine if \(F\) is irreducible.
-We can do this by checking \(\gcd(F(x), x^{q^s}-x) \underrel{?}{=} F(x)\) since we knwo that \(x^{q^s}-x = \prod_{F\text{ irreducible}; \deg F = s} F\).
+We can do this by checking \(\gcd(F(x), x^{q^s}-x) \underrel{?}{=} F(x)\) since we know that \(x^{q^s}-x = \prod_{F\text{ irreducible}; \deg F = s} F\).
 
 Because we can do this efficiently, we can start from \(\Fq[p]\), and find an irreducible polynomial to construct \(\mathbb{F}_{p^s}\).
 
