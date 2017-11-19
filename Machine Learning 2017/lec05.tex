@@ -1,0 +1,190 @@
+\documentclass{idc_msc}
+
+\title{Machine Learning\\\large Lecture 5}
+\date{2017-11-19 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Shai Fine\\Typeset by Steven Karas}
+
+% renew commands for inline preview
+\renewcommand{\T}{{\mathpalette\raiseT\intercal}} % e.g. F^\T
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Machine Learning, taught by Dr. Shai Fine at IDC Herzliyah in the fall semester of 2017/2018.
+Sections may be based on the lecture slides written by Dr. Shai Fine.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item Instance based learning
+  \item Generative modeling
+  \item Discriminative classification
+\end{itemize}
+
+\section{Classification}
+
+Classification problems are decision problems.
+
+Formally, we want to learn a classification model \(f: X \to Y\) with a training set \(X = \{\langle x_1,y_1 \rangle,\ldots,\langle x_m,y_m \rangle\}\) where the feature vector \(x_i \in X\) is a \(d\)-dimensional vector where each feature is either numeric or nominal, and the label \(y_i\) is either a binary classification, or a multi-class classification.
+
+Global assumption is that the training examples are i.i.d.
+
+Once we have modeled the function, we can predict the classification \(y\) for a new instance's feature vector \(x\).
+
+
+\clearpage
+\section{Instance based learning}
+
+Instance based learning simply stores all the training examples and calculates a prediction based on the stored data.
+
+\subsection{k-Nearest-Neighbors}
+
+kNN stores the training instances in an efficient data structure for querying based on distance from a provided instance.
+
+kNN is parameterized by \(k\), which is typically odd, to avoid ties.
+
+Formally, kNN is calculating the conditional probability that \(x\) is a particular class given that there are \(n \le k\) neighbors of a given class:
+
+\[\Pr(y \mid x) = \frac{|\{(x_i,y_i)\mid y_i = y,\, x_i \in kNN(x)\}|}{|kNN(x)|}\]
+
+\paragraph{Training algorithm}
+
+For each training vector in the training set: store the training vector.
+
+\paragraph{Prediction algorithm}
+
+Given a feature vector \(x\), calculate the k neighbors closest to \(x\). Predict the class of \(x\) as the most common class of the neighbors.
+
+There are some variants of this, such as outputting the margin as the confidence, or weighting closer neighbors.
+
+\paragraph{Efficient Indexing}
+
+KD-Trees implement finding the nearest neighbor in \(O(\log n)\)
+
+\paragraph{Selection of k}
+
+\(k\) is typically chosen to be very small.
+As \(k\) grows, the neighborhood of \(x\) grows, which gives us a larger bias (inaccurate estimation).
+As \(k\) shrinks, the neighborhood of \(x\) shrinks, which gives us larger variance (unreliable estimation).
+
+\paragraph{Usage considerations}
+
+kNN trains very fast, doesn't lose information, and can learn complex target functions.
+However, the query time can be very slow, and can get fooled by irrelevant attributes.
+
+It also doesn't scale well to high dimensional data (20 features at most), and requires lots of training data.
+
+
+\clearpage
+\section{Generative modeling}
+
+Estimates \(\Pr(x \mid C_k)\).
+
+\subsection{Naive Bayes}
+
+Assume feature independence, and calculate:
+
+\[\Pr(x \mid C_k) \approx \prod_{i=1}^d \Pr(x_i \mid C_k)\]
+
+\[
+\begin{aligned}
+\Pr(C_k \mid x)
+& = \frac{\Pr(x \mid C_k)\Pr(C_k)}{\sum_j \Pr(x \mid C_j)\Pr(C_j)} \\
+& = \frac{1}{1 + \sum_{j \ne k} \frac{\Pr(x \mid C_j)\Pr(C_j)}{\Pr(x \mid C_k)\Pr(C_k)}} \\
+& = \frac{1}{1 + \sum_{j \ne k} \frac{\Pr(C_j)}{\Pr(C_k)}\prod_{i=1}^d\frac{\Pr(x_i \mid C_j)}{\Pr(x_i \mid C_k)}}
+\end{aligned}
+\]
+
+This is a bad approximation, but works well enough.
+The ratio is the only part that matters, and because of the feature independence, the ratio factors nicely.
+
+We then train our decision boundaries by \(C = \arg \max_k \Pr(C_k \mid x)\).
+
+Take log, and assume \(k = 2\) for simplicity:
+
+\[
+\ln \frac{\Pr(C_1 \mid x)}{\Pr(C_2 \mid x)}
+= \ln \frac{\Pr(x \mid C_1) \Pr(C_1)}{\Pr(x \mid C_2)\Pr(C_2)}
+= \ln \frac{\Pr(C_1)}{\Pr(C_2)} + \sum_{i=1}^d \ln \frac{\Pr(x_i \mid C_1)}{\Pr(x_i \mid C_2)}
+\]
+
+\paragraph{Multinomial distribution}
+
+\[
+\ln \frac{\Pr(C_1 \mid x)}{\Pr(C_2 \mid x)}
+= \ln \frac{\Pr(C_1)}{\Pr(C_2)} + \sum_{\omega \in \Omega} n_\omega \ln \frac{\Pr(\omega \mid C_1)}{\Pr(\omega \mid C_2)}
+\]
+
+Where \(n_\omega\) is the appearances of the symbol \(\omega\) in \(x\) and \(\sum_{\omega \in \Omega} n_\omega = |x| = n\).
+
+\paragraph{Gaussians with equal covariance}
+
+If \(\Pr(x\mid C_k) = \mathcal{N} ( x \mid \mu_k, \Sigma)\):
+\marginpar{We will show this derivation later in the course}
+
+\[
+\ln \frac{\Pr(C_1 \mid x)}{\Pr(C_2 \mid x)}
+\propto \ln \frac{\Pr(C_1)}{\Pr(C_2)} - x^\T \Sigma^{-1}(\mu_1 - \mu_2)
+\]
+
+All three of these Naive Bayes approximation results in linear decision boundaries in the probability space:
+
+\[f_\mathbf{w}(\mathbf{x}) = b + \mathbf{x}^\T \mathbf{w}\]
+
+Note that because we independently evaluate the distribution of the classes, it is possible to combine dissimilar distributions, however this leads to some uglier math.
+
+
+\clearpage
+\section{Discriminative classification}
+
+\subsection{Decision Trees}
+
+Tree where each internal node represents a decision.
+Decisions may be univariate, or multivariate.
+Each decision partitions the feature space into separate branches of the tree.
+Leaves represent classification labels, or regressions either as an average or a local fit.
+
+\paragraph{Training process}
+
+Greedy algorithm, find the best split recursively.
+Tree depth is bound by training parameters.
+
+% CART is a greedy algorithm invented by Breiman, et al in 1984
+
+% C4 (open source) and C5 (proprietary) are 
+
+More details on the training process are available on slides 15-18
+
+\clearpage
+\section{Linear Classification}
+
+\subsection{Perceptron}
+
+Introduced by Rosenblatt in 1958.
+
+Uses a generic update rule (called the perceptron learning rule):
+
+\[\mathbf{w}^t = \mathbf{w}^{t-1} + \Delta \mathbf{w}^t\]
+
+The algorithm only updates the weight on classification error, with the update proportional to the magnitude of the error multiplied by the learning rate \(\eta\), typically with a decaying learning rate \(\eta \propto \frac{1}{t}\):
+
+\[\Delta \mathbf{w}^t_j = \eta (\hat{y}^t - y^t) x^t_j\]
+
+
+Effectively, this does gradient descent, and converges on linear subspaces.
+If the feature space is nonlinear, then it will not converge.
+
+
+\subsection{Support Vector Machines}
+
+Linear SVMs find the maximal margin linear classifiers which have a unique solution.
+
+
+
+% NOTE: f_classif is similar enough to pearson correlation that the difference is unimportant.
+
+
+\end{document}
