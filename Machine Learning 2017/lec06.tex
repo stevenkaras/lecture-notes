@@ -1,0 +1,159 @@
+\documentclass{idc_msc}
+
+\title{Machine Learning\\\large Lecture 6}
+\date{2017-11-26 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Shai Fine\\Typeset by Steven Karas}
+
+% renew commands for inline preview
+\renewcommand{\T}{{\mathpalette\raiseT\intercal}} % e.g. F^\T
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Machine Learning, taught by Dr. Shai Fine at IDC Herzliyah in the fall semester of 2017/2018.
+Sections may be based on the lecture slides written by Dr. Shai Fine.
+
+\paragraph{Homework 2}
+
+It is strongly suggested to submit hw2 on time, because it will delay publishing hw3, as it contains the ``correct'' list of features to select.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item Binary to Multiclass Classification
+  \item Neural networks
+\end{itemize}
+
+\section{Short review}
+
+\subsection{Naive Bayesian Classification}
+
+Assume feature independence, and calculate:
+
+\[\Pr(x \mid C_k) \approx \prod_{i=1}^d \Pr(x_i \mid C_k)\]
+
+This is a bad approximation, but works well enough.
+
+Note that this creates linear decision boundaries in the probability domain, which are nonlinear in the feature space.
+
+\subsection{Decision Trees}
+
+Tree where each internal node represents a decision.
+Decisions may be univariate, or multivariate.
+Each decision partitions the feature space into separate branches of the tree.
+Leaves represent classification labels, or regressions either as an average or a local fit.
+
+Note that the decision boundaries are orthogonal to the axes of the feature space.
+
+\section{Binary to Multiclass}
+
+Recall that KNN and naive bayes are capable of solving multiclass problems natively.
+
+Transform the multiclass problem into a set of binary problems.
+Train a classifier for each problem separately, then combine the prediction results.
+
+Note that it can be extremely helpful to use classifiers that output a confidence level, which can be used to combine their results.
+However, this is out of the scope of this course.
+
+\subsection{One vs Rest (One-Hot)}
+
+Binary classifiers per class.
+Simplest to implement, but sensitive to binary classification error.
+
+\subsection{One vs One (All-pairs)}
+
+\(\frac{n(n-1)}{2}\) classifiers, and choose the class that wins the most pairwise matches.
+
+\subsection{Error Correct Output Code (ECOC)}
+
+Presented by \href{http://www.jair.org/papers/paper105.html}{Dietterich and Bakiri in 1995}
+
+Construct each class as a codeword that maximizes class separation.
+Some codes maximize column separation, which decorrelates binary classification error regions.
+
+Train classifiers for each of the \(n\) codeword elements independently.
+
+Uses Hamming distance as a distance metric on the classifier results, and decides on the class with the smallest Hamming distance.
+
+\section{Evaluation and Model Selection}
+
+We want to estimate the error of a given model, or compare the expected errors of two models:
+
+\subsection{Empirical methods}
+
+Compare models based on metrics defined ahead of time, and select a model type and specifically trained model according to these metrics.
+
+\subsubsection{Validation set method}
+
+Set aside validation\footnote{Older literature refers to this set as the test set, and the test set as the validation set} data (typically 20-30\% of the original data set).
+Train the model on the training set, and once trained, validate the performance of the model on the validation set.
+
+This is easy to implement, but doesn't train your model on the full data.
+
+\subsubsection{k-Fold Cross Validation}
+
+This method is for evaluating the model type (e.g. DT vs SVM vs CNN), which should be retrained on the full training set for prediction purposes.
+
+Randomly partition data \(X\) into \(k\) disjoint equally sized subsets \(X_1, \ldots, X_k\).
+
+For each set \(X_i\), train on \(X \setminus X_i\), and calculate the validation error \(\text{Err}_i = \sum_{x \in X_i} I[h_i(x) \ne c_t(x)]\).
+
+The overall error is the empirical average: \(\text{Err} = \frac{1}{k} \sum_i \text{Err}_i\).
+
+There are some methods for parallelizing this process.
+
+\paragraph{Choosing k}
+
+If \(k\) is too small, we have low confidence in the error estimation.
+If \(k\) is too large, the test set is larger, and we train the model more times.
+There is a proof that \(k = |X|\), called Leave-One-Out cross validation, gives us the best estimation of error, but takes a very long time to run.
+
+\subsubsection{Receiver Operating Characteristic (ROC)}
+
+Historically came from signal detection, then used in biomedical fields.
+Used heavily in machine learning for assessing binary classifiers.
+
+\begin{description}
+  \item[Specificity] \(\text{TN} / (\text{TN} + \text{FP})\)
+  \item[Sensitivity] \(\text{TP} / (\text{TP} + \text{FN})\). Also called the recall, or the true positive rate.
+  \item[Precision] \(\text{TP} / (\text{TP} + \text{FP})\)
+  \item[False Positive Rate] \(\text{FP} / (\text{TN} + \text{FP}) = 1 - \text{Specificity}\)
+\end{description}
+
+Two dimensional graph - True positive rate (y-axis) is plotted against the False positive rate (x-axis).
+Sometimes other metrics are graphed, but TPR vs FPR is the most common.
+A graphical example can be found on slide 45.
+
+Can be used to choose a confidence threshold for a binary classifier.
+
+\paragraph{Comparing models}
+
+By using area under the ROC curve (AUC) as a quality metric, we can compare models.
+Note that the AUC must be between 0.5 and 1.
+
+\subsection{Theoretical methods}
+
+Sample complexity, computational complexity, generalization bounds, and information density.
+
+\subsection{Model Selection}
+
+When selecting a model, we prefer the simpler 
+
+\paragraph{Occam's Razor}
+
+\begin{quote}
+Pluralitas non est ponenda sine necessitas.
+Plurality should not be posited without necessity.
+\hfill -- William of Occam 14th century
+\end{quote}
+
+Simplicity in our context is when we minimize both the training and the validation error together.
+
+\section{Next week}
+
+???
+
+\end{document}
