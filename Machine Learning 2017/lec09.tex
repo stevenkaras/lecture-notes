@@ -155,7 +155,7 @@ The probability of generating \(x\) by GMM is:
 \end{aligned}
 \]
 
-\subsubsection{Application of EM to GMM}
+\subsubsection{Derivation of EM for GMM}
 
 We want to fit a gaussian mixture of \(k\) components to a training set \(\{x_1,\ldots,x_n\}\).
 Compose the training data with the component labels \(z_1,\ldots,z_n\) to get pairs \(x_i, z_i;\; i \in \{1,\ldots,n\}\).
@@ -193,22 +193,53 @@ To maximize \(\mathcal{Q}(\Theta; \Theta_t)\) with respect to \(\mu_j\), set the
 
 \[\frac{\partial}{\partial \mu_j} \mathcal{Q}(\Theta; \Theta_t) = \sum_{i=1}^n r_{ij} \Sigma_j^{-1}(x_i - \mu_j) = 0\]
 
-\[\hat{\mu_j} = \frac{\sum_{i=1}^n r_{ij} x_i}{\sum_{i=1}^n r_{ij}}\]
+\[\widehat{\mu_j} = \frac{\sum_{i=1}^n r_{ij} x_i}{\sum_{i=1}^n r_{ij}}\]
 
 Where \(r_{ij} = \Pr(z_i = j \mid x_i, \Theta_t)\) are computed based on the parameters at the \(t\)-th iteration.
 
 Similarly, we have:
 
-\[\hat{\Sigma_j} = \frac{\sum_{i=1}^n r_{ij} (x_i - \mu_j)(x_i - \mu_j)^\T}{\sum_{i=1}^n r_{ij}}\]
+\[\widehat{\Sigma_j} = \frac{\sum_{i=1}^n r_{ij} (x_i - \mu_j)(x_i - \mu_j)^\T}{\sum_{i=1}^n r_{ij}}\]
 
 If all the \(r_{ij} \in \{0,1\}\), then the component labels are known and the update expressions reduce to the standard parameter estimation for the mean and covariance matrix.
 
 \paragraph{Update terms for M-step}
 
-Maximize \(\mathcal{Q}\)
-\footnote{I wasn't able to type up the full definitions, they can be found on slides 18-23 with the full algorithm given on slide 24}
+Maximize \(\mathcal{Q}\) with respect to \(\alpha_j\), subject to \(\sum_j \alpha_j = 1\).
 
-% On the exam, we will need to derive EM for a non-gaussian distribution (maybe Poisson?)
+Introduce Lagrange multiplier \(\lambda\) and set gradient to zero:
+
+\[
+  \frac{\partial}{\partial \alpha_j} \mathcal{Q}(\Theta; \Theta_t) + \lambda (1 - \sum_j \alpha_j) = \frac{\sum_i r_{ij}^{(t)}}{\alpha_j} - \lambda = 0
+\]
+\[\sum_i r_{ij}^{(t)} = \lambda \alpha_j\]
+
+Summing both sides with respect to \(j\) and plug in the constraint:
+
+\[\sum_j \sum_i r_{ij}^{(t)} = \lambda \sum_j \alpha_j \Rightarrow \sum_j \sum_i r_{ij}^{(t)} = \lambda \Rightarrow n = \lambda\]
+
+Substitute \(\lambda\) back in the gradient to get the update term:
+
+\[\widehat{\alpha_j} = \frac{\sum_{i=1}^n r_{ij}^{(t)}}{n}\]
+
+\paragraph{Full algorithm}
+\footnote{On the exam, we will need to derive EM for a non-gaussian distribution} % there was a hint it may be Poisson
+
+\begin{enumerate}
+  \item Let \(\Theta_0 = (\alpha_1, \ldots, \alpha_k, \mu_1, \ldots, \mu_k, \Sigma_1, \ldots, \Sigma_k)\) be the initial guess.
+  \item Set \(t = 0\).
+  \item While the log likelihood \(\mathcal{L}=\log \Pr(x_i \mid \Theta_t)\) is increasing:
+  \begin{enumerate}
+    \item Perform the E-step by computing \(r_{ij} = \Pr(z_i = j \mid x_i, \Theta_t)\)
+    \item Perform the M-step by re-estimating the parameters using the following update equation:
+    \[
+    \widehat{\alpha_j} = \frac{\sum_{i=1}^n r_{ij}}{n} \qquad \widehat{\mu_j} = \frac{\sum_{i=1}^n r_{ij}x_i}{\sum_{i=1}^n r_{ij}}
+    \]
+    \[\widehat{\Sigma_j} = \frac{\sum_{i=1}^n r_{ij} (x_i - \mu_j)(x_i - \mu_j)^\T}{\sum_{i=1}^n r_{ij}}\]
+    \item Let \(\Theta_{t+1} = (\widehat{\alpha_1}, \ldots, \widehat{\alpha_k}, \widehat{\mu_1},\ldots,\widehat{\mu_k}, \widehat{\Sigma_1},\ldots,\widehat{\Sigma_k})\).
+    \item Set \(t = t + 1\).
+  \end{enumerate}
+\end{enumerate}
 
 \section{Spectral Clustering}
 
@@ -216,6 +247,8 @@ Methods such as k-means look for compact clustering structures.
 Spectral clustering\footnote{Shai mentioned this will not be on the exam} provides a partition of the similarity graph that finds the min-cut.
 
 Applications include object/region detection in images.
+
+Details can be found on the backup slides.
 
 \section{Hierarchical Clustering}
 
@@ -229,32 +262,70 @@ Domain knowledge is king.
 
 Internal index measures the clustering goodness based on the clustered data.
 
-\begin{itemize}
-  \item Dunn index
-  \item Davies–Bouldin index
-  \item Silhouette index
-\end{itemize}
+\subsubsection{Dunn Index}
 
-Details can be found on slide 36.
+Identifies sets of clusters that are compact (small variance) and well separated (centroids are far apart):
+
+\[
+  \frac{\min \delta(C_i, C_j)}{\max \Delta_k}
+\]
+
+Where \(\delta(C_i, C_j)\) is a distance metric between clusters \(C_i\), \(C_j\); \(\Delta_k\) is the distance within a cluster \(k\) (the cluster diameter).
+
+A higher Dunn Index indicates better clustering.
+
+\subsubsection{Davies-Bouldin Index}
+
+\[
+  \frac{1}{k} \sum_i \max_{i \ne j} \frac{\sigma_i + \sigma_j}{\delta(C_i, C_j)}
+\]
+
+Similar to the Dunn Index, but both within and between distances are measured w.r.t. the cluster centroids.
+
+A lower value indicates better clustering.
+
+\subsubsection{Silhouette Index}
+
+\[-1 \le S(i) = \frac{b(i) - a(i)}{\max\{b(i), a(i)\}} \le 1\]
+
+where \(a(i)\) is the average dissimilarity of \(x_i\) with all other instances within the same cluster;
+and \(b(i)\) is the average dissimilarity of \(x_i\) with all other instances of the less dissimilar cluster.
+
+\(S(i) \to 1\) indicates the instance belongs to its cluster, whereas \(S(i) \to -1\) indicates it matches better to the "competing" cluster.
 
 \subsection{External Index}
 
 External index measures the clustering goodness against externally given class labels.
 
-\begin{itemize}
-  \item Error rates - as in supervised learning
-  \item F measure
-  \item Jaccard measure
-  \item Purity
-\end{itemize}
+\subsubsection{Error rates}
 
-Details can be found on slide 37.
+As in supervised learning
+
+\subsubsection{F measure}
+
+Harmonic mean of precision and recall:
+
+\[F = 2 \frac{\text{precision} \cdot \text{recall}}{\text{precision} + \text{recall}} = 2 \frac{TP}{2TP + FP + FN}\]
+
+\subsubsection{Jaccard measure}
+
+Measures the similarity between sample sets:
+
+\[J(A,B) = \frac{|A \cap B|}{|A \cup B|}\]
+
+\subsubsection{Purity}
+
+Each cluster is assigned to the most frequent label \(y\).
+
+\[\text{Purity}(C) = \frac{1}{n} \sum_k \max_j |C_k \cap y_j|\]
+
+This simply measures the number of correctly assigned labels divided by the dataset size.
 
 \subsection{Relative/Stability Index}
 
 Relative/Stability index measures two different clustering methods (or multiple runs of the same method).
 
-\paragraph{Rand Index}
+\subsubsection{Rand Index}
 
 Measures the normalized number of agreements between clustering runs:
 
