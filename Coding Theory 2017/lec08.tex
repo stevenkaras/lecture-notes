@@ -1,0 +1,262 @@
+\documentclass{idc_msc}
+
+\usepackage{tikz}
+\usetikzlibrary{graphs,positioning,quotes}
+
+\title{Coding Theory\\\large Lecture 8}
+\date{2017-12-26 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Elette Boyle\\Typeset by Steven Karas}
+
+\newcommand{\Fq}[1][q]{{\mathbb{F}_{#1}}}
+\DeclareMathOperator*{\Vol}{Vol}
+\DeclareMathOperator*{\RS}{RS}
+\newcommand{\finiteuniform}[1][\mathbb{D}]{{\mathcal{U}_{#1}}}
+\newcommand{\BSC}[1][p]{{\text{BSC}_{#1}}}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Coding Theory, taught by Dr. Elette Boyle at IDC Herzliyah in the fall semester of 2017/2018.
+Sections may be based on the lecture notes written by Dr. Elette Boyle.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item An efficient class of binary codes (expander codes)
+  \begin{itemize}
+    \item Today - construction + distance analysis
+    \item Tomorrow - efficient decoding (linear time)
+  \end{itemize}
+\end{itemize}
+
+\section{Review \& Background}
+
+Last week, we covered an efficient decoding algorithm for RS codes.
+
+RS codes in general have good distance and efficient decoding, but they rely on a large alphabet \(\Fq\).
+
+Concatenated codes is a way to compose codes on top of each other, which is a typical strategy in implementing RS codes.
+
+\subsection{Bipartite graphs}
+
+A bipartite graph is a triple \(G=(L,R,E)\) of left vertices \(L\), right vertices \(R\), and edges \(E \subseteq L \times R\).
+
+\subsection{Adjacency matrix}
+
+The adjacency matrix of a graph is defined as \(A_G\) where the \((u,v)\) entry of \(A_G\) is 1 if \((u,v) \in E\).
+
+\paragraph{Adjacency of bipartite graphs}
+
+Because only a small subset of the generic adjacency matrix of a bipartite graph is populated, we can simplify it to be a \(|L| \times |R|\) matrix.
+
+%TODO: put in an example of a simple graph and matrix
+
+% \begin{center}
+% \begin{tikzpicture}
+%   [
+%     bit/.style={draw,circle,minimum size=7mm,inner sep=0pt},
+%     every edge/.style={draw,->,shorten >=0.5pt,>=stealth,semithick}
+%   ]
+%   \node [bit] (l1) {};
+%   \node [bit] (l2) [below=of l1] {};
+%   \node [bit] (l3) [below=of l2] {};
+%   \node [bit] (l4) [below=of l3] {};
+%   \node [bit] (r1) [right=of l1] {};
+%   \node [bit] (r2) [below=of r1] {};
+%   \node [bit] (r3) [below=of r2] {};
+
+%   \graph[use existing nodes]{
+%     l1 -> r2;
+%     l2 -> r1;
+%     l3 -> r1;
+%     l3 -> r3;
+%     l4 -> r3;
+%   };
+% \end{tikzpicture}
+% \end{center}
+
+% l1 - r2
+% l2 - r1
+% l3 - r1
+% l3 - r3
+% l4 - r3
+
+% \[
+% \begin{pmatrix}
+% 0 & 1 & 0 \\
+% 1 & 0 & 0 \\
+% 1 & 0 & 1 \\
+% 0 & 0 & 1
+% \end{pmatrix}
+% \]
+
+\subsection{Factor Graph}
+
+The adjacency matrix can be viewed as a parity-check matrix of a linear code.
+Similarly, any binary linear code can view the parity check matrix as the adjacency matrix of a bipartite graph.
+Note that the parity check matrix must be full rank, or the code is overly restrained with no codewords.
+
+Specifically, given a parity check matrix \(H\), we can construct a bipartite graph \(G_H\) with adjacency matrix \(H\).
+
+Or, given a bipartite graph \(G = (L, R, E)\) where \(|L| \ge |R|\), we can construct a linear code \(C(G)\) with parity check matrix \(A_G\).
+
+\section{Expander Codes}
+
+\subsection{Expander Graphs}
+
+Informally, sparse graphs with good connectivity properties.
+
+We will consider bipartite graphs with a linear number of edges (with relation to the number of vertices).
+
+\paragraph{Left regularity}
+
+A bipartite graph \(G = (L, R, E)\) is \(D\)-regular if every vertex in \(L\) has degree exactly \(D\).
+
+\paragraph{Neighbor set}
+
+For any vertex set \(S \subseteq L\), \(u \in R\) is a neighbor of \(S\) if \(\exists s \in S : (s,u) \in E\).
+We denote by \(N(S)\) the set of all neighbors of \(S\), noting that \(N(S) \subseteq R\).
+
+\paragraph{Unique Neighbor Set}
+
+For any \(S \subseteq L\), \(u \in R\) is a unique neighbor of \(S\) if there is exactly one edge that connects \(u\) to \(S\).
+Denote \(U(S)\) as the set of all unique neighbors of \(S\).
+
+\paragraph{Bipartite Expander}
+
+A bipartite graph where all subsets of \(L\) up to some size where \(|U(S)| > |S|\).
+
+Formally, an \((n, m, D, \gamma, \alpha)\) bipartite expander is a \(D\)-regular bipartite graph \(G = (L, R, E)\) where \(|L|=n\), \(|R| = m\) such that for any \(S \subseteq L\), it holds that \(|S| \le \gamma n\) and \(|N(S)| \ge \alpha |S|\).
+
+As such, \(\frac{1}{n} \le \gamma \le 1\).
+Note that we trivially get that \((n, m, D, \frac{1}{n}, D)\) is an expander because each subset trivially expands to \(D\) vertices.
+Similarly, \(0 \le \alpha \le D\).
+
+Note that \(\gamma\) gives a measure of how small the expanding sets are, where a bigger \(\gamma\) is stronger.
+Similarly, \(\alpha\) is the expansion factor which gives a measure of how much the sets expand.
+
+\paragraph{Existence}
+
+We can achieve expansion arbitrarily close to \(D\).
+
+For any \(\varepsilon > 0\) and \(n \ge m\), there exists some bipartite expander \((n, m, D, \gamma, D(1-\varepsilon))\) where \(D = \Theta\left(\frac{\log(n/m)}{\varepsilon}\right)\) and \(\gamma = \Theta\left(\frac{\varepsilon m}{D n}\right)\).
+
+The expansion factor \(\alpha = D(1 - \varepsilon)\) can get arbitrarily close to \(D\), at the expense of a larger degree \(D = \Theta\left(\frac{\log(n/m)}{\varepsilon}\right)\).
+
+Note that we constrain this to \(n \ge m\). It is trivial to construct such an expander for the case where \(m = Dn\) by simply mapping to disjoint sets in \(R\).
+
+A trivial lower bound on an achievable \(m\) is \(\gamma n D (1 - \varepsilon)\) as sets of size \(\gamma n\) must expand by a factor of \(\alpha\). Our proof will show for an \(m \sim \frac{1}{\varepsilon}\) times longer.
+
+\paragraph{Lemma - Useful Property}
+
+Let \(G=(L, R, E)\) be a \((n,m,D,\gamma, D(1-\varepsilon))\) bipartite expander with \(\varepsilon < 1/2\).
+
+We want to show that for any \(S \subseteq L\) of size \(|S| \le \gamma n\), it holds that \(|U(S)| \ge D (1 - 2 \varepsilon)|S|\).
+
+Recall that \(|N(S)| \ge D(1-\varepsilon)|S|\).
+Moreover, \(D\)-regularity gives us that the total number of edges between \(S\) and \(N(S)\) is exactly \(D|S|\).
+
+We use \(|N(S)|\) edges to touch the neighbors (or they wouldn't be neighbors). This gives us at most \(D|S| - D(1-\varepsilon)|S|=\varepsilon D |S|\) remaining edges.
+In the worst case, each remaining edge disqualifies a different vertex, which gives us \(|U(S)| \ge N(S) - \varepsilon D |S| = D (1-2\varepsilon)|S|\).
+
+
+\clearpage
+\subsection{Expander Codes}
+
+Let \(G = (L,R,E)\) be a bipartite expander graph where \(|L| \ge |R|\).
+Then \(C(G)\) is an expander code.
+
+Note that for \(|L|=n\) and \(|R| = n-k\), then for \((c_1,\ldots,c_n) \in \{0,1\}^n\) is a codeword in \(C(G)\) iff \(\forall r \in R\):
+
+\[\sum_{l \in S : r \in N(\{l\})} c_l = 0\]
+
+We've already shown that the rate of \(C(G) = \frac{n-k}{n} = \frac{|L|-|R|}{|L|}\).
+
+We want to show the distance.
+
+\paragraph{Weak distance bound}
+
+Let \(G\) be a \((n,m,D,\gamma, \overbrace{D(1-\varepsilon)}^{\alpha})\) bipartite expander where \(\varepsilon < 1/2\).
+We claim that \(C_G\) is a \([n,k,\gamma n+1]_2\) code.
+
+We get all our claims for free except that the distance is \(\gamma n + 1\).
+Suppose for contradiction that the distance of \(C(G)\) is \(\le \gamma n\).
+Because \(C_G\) is a linear code, there exists some codeword \(\vec{c} \in C(G)\) with weight \(\le \gamma n\).
+Let \(S = \{l \in L \mid c_l \ne 0\}\) (the vertices where the codeword is nonzero). As such, \(|S| = w(\vec{c}) \le \gamma n\).
+Because \(G\) is an expander, by lemma, it holds that:
+
+\[|U(S)| \ge \underset{> 0}{D}\;\;\underset{>0;\varepsilon < \frac{1}{2}}{(1 - 2\varepsilon)}\;\;\underset{> 0; \vec{c}\ne\vec{0}}{|S|}\]
+
+So there exists some vertex \(r \in R\) with \(r \in U(S)\).
+However, this implies that the parity of \(r\) is 1, because \(S\) is the set of all left vertices which are 1, and there is exactly one edge to \(r\).
+However, this would imply that the parity check defined by \(r\) is not satisfied by \(\vec{c}\) (as \(c_l \ne 0\)).
+Therefore, \(\vec{c} \notin C(G)\).
+This contradicts our assumption that the distance of \(C(G)\) is \(\le \gamma n\), and therefore the distance is \(\ge \gamma n + 1\).
+
+\paragraph{A better distance bound}
+
+Instead of considering codewords of weight only up to the expansion threshold of \(\gamma n\), we will leverage expansion of a subset of the corresponding nonzero positions \(S\).
+
+Let \(G\) be a \((n, n-k, D, \gamma, D(1-\varepsilon))\) bipartite expander with \(\varepsilon < 1/2\).
+We claim that \(C(G)\) has distance of at least \(2 \gamma (1 - \varepsilon) n\).
+
+Suppose for contradiction that the distance is strictly less than \(2 \gamma (1 - \varepsilon) n\).
+Therefore, there is a nonzero codeword \(\vec{0} \ne \vec{c} \in C(G)\) with weight \(w(\vec{c}) < 2 \gamma (1 - \varepsilon)n\).
+
+Let \(S = \{l \in L \mid c_l \ne 0\}\) be the nonzero vertices of \(\vec{c}\).
+We will again argue that \(U(S) \ne \emptyset\) and then use the above argument to contradict.
+
+If \(|S| \le \gamma n\) then the previous theorem still holds.
+So assume that \(T \subset S\) such that \(|T| = \gamma n\).
+Therefore, \(|U(T)| \ge D(1-2\varepsilon)|T|\).
+But, some of the vertices in \(U(T)\) may also have a neighbor in \(S \setminus T\).
+We want to upper bound the number of neighbors of \(S \setminus T\).
+Since the number of edges from \(S \setminus T\) is \(D |S \setminus T|\), it follows that:
+
+\[
+\begin{aligned}
+|N(S \setminus T)|
+&\le D|S \setminus T| \\
+&= D(|S| - |T|) \\
+&\le D(2 \gamma(1-\varepsilon)n - \gamma n) \\
+&= D(\gamma (1 - 2 \varepsilon)n) \\
+\end{aligned}
+\]
+
+Note that this implies that \(|U(S)| \ge \underset{\ge D(1-2\varepsilon)\gamma n}{|U(T)|} - \underset{< D(1-2\varepsilon)\gamma n}{|N(S \setminus T)|}\) (as we throw away any \(r \in U(T)\) with an additional edge to \(S \setminus T\)).
+This implies that \(|U(S)| > 0\), from which we can repeat the argument from before.
+
+\clearpage
+\subsection{Encoding \& Decoding}
+
+Because this is a linear code, we can simply find the generator matrix which gives us encoding in \(O(n^2)\) time by matrix multiplication.
+For expander codes, we can do this in linear time\cite{sipser1996expander}.
+
+Decoding can be done in linear time because of the sparsity of the parity check matrix.
+
+% TODO: put in a drawing of a bipartite graph
+
+\paragraph{Decoding at a high level}
+
+Given a graph \(G = (L, R, E)\) and a received word \(\vec{y} \in \{0, 1\}^n\).
+
+First, evaluate the right hand side parity checks. Some will be satisfied and some unsatisfied.
+
+Next, for every \(l \in L\), count how many of its \(D\) neighboring checks are unsatisfied.
+
+Until there does not exist \(l \in L\) with \(> \left\lfloor\frac{D}{2}\right\rfloor\) neighboring checks unsatisfied, flip \(y_l\).
+
+Because in each iteration, the corresponding right side neighbors flip from satisfied to unsatisfied and vice versa.
+
+\section{Next Time}
+
+Proof of decoding convergence.
+Proof of decoding correctness.
+Linear time encoding.
+
+\end{document}
