@@ -52,48 +52,41 @@ The adjacency matrix of a graph is defined as \(A_G\) where the \((u,v)\) entry 
 
 \paragraph{Adjacency of bipartite graphs}
 
-Because only a small subset of the generic adjacency matrix of a bipartite graph is populated, we can simplify it to be a \(|L| \times |R|\) matrix.
+Because only a small subset of the generic adjacency matrix of a bipartite graph is populated, we can simplify it to be a \(|R| \times |L|\) matrix.
 
 %TODO: put in an example of a simple graph and matrix
 
-% \begin{center}
-% \begin{tikzpicture}
-%   [
-%     bit/.style={draw,circle,minimum size=7mm,inner sep=0pt},
-%     every edge/.style={draw,->,shorten >=0.5pt,>=stealth,semithick}
-%   ]
-%   \node [bit] (l1) {};
-%   \node [bit] (l2) [below=of l1] {};
-%   \node [bit] (l3) [below=of l2] {};
-%   \node [bit] (l4) [below=of l3] {};
-%   \node [bit] (r1) [right=of l1] {};
-%   \node [bit] (r2) [below=of r1] {};
-%   \node [bit] (r3) [below=of r2] {};
+\begin{center}
+\begin{tikzpicture}
+  [
+    bit/.style={draw,circle,minimum size=7mm,inner sep=0pt},
+    every edge/.style={draw,-,shorten >=0.5pt,>=stealth,semithick}
+  ]
+  \node [bit] (l1) {};
+  \node [bit] (l2) [below=of l1] {};
+  \node [bit] (l3) [below=of l2] {};
+  \node [bit] (l4) [below=of l3] {};
+  \node [bit] (r1) [right=of l1] {};
+  \node [bit] (r2) [below=of r1] {};
+  \node [bit] (r3) [below=of r2] {};
 
-%   \graph[use existing nodes]{
-%     l1 -> r2;
-%     l2 -> r1;
-%     l3 -> r1;
-%     l3 -> r3;
-%     l4 -> r3;
-%   };
-% \end{tikzpicture}
-% \end{center}
+  \graph[use existing nodes]{
+    l1 -> r2;
+    l2 -> r1;
+    l3 -> r1;
+    l3 -> r3;
+    l4 -> r3;
+  };
 
-% l1 - r2
-% l2 - r1
-% l3 - r1
-% l3 - r3
-% l4 - r3
-
-% \[
-% \begin{pmatrix}
-% 0 & 1 & 0 \\
-% 1 & 0 & 0 \\
-% 1 & 0 & 1 \\
-% 0 & 0 & 1
-% \end{pmatrix}
-% \]
+  \node (adj) [right=2cm of r2] {
+    $\begin{pmatrix}
+      0 & 1 & 1 & 0 \\
+      1 & 0 & 0 & 0 \\
+      0 & 0 & 1 & 1
+    \end{pmatrix}$
+  };
+\end{tikzpicture}
+\end{center}
 
 \subsection{Factor Graph}
 
