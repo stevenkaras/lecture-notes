@@ -1,0 +1,204 @@
+\documentclass{idc_msc}
+
+\usepackage{tikz}
+\usetikzlibrary{graphs,positioning,quotes}
+
+\title{Coding Theory\\\large Lecture 9}
+\date{2017-12-28 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Elette Boyle\\Typeset by Steven Karas}
+
+\newcommand{\Fq}[1][q]{{\mathbb{F}_{#1}}}
+\DeclareMathOperator*{\Vol}{Vol}
+\DeclareMathOperator*{\RS}{RS}
+\DeclareMathOperator*{\Pcheck}{Pcheck}
+\newcommand{\finiteuniform}[1][\mathbb{D}]{{\mathcal{U}_{#1}}}
+\newcommand{\BSC}[1][p]{{\text{BSC}_{#1}}}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Coding Theory, taught by Dr. Elette Boyle at IDC Herzliyah in the fall semester of 2017/2018.
+Sections may be based on the lecture notes written by Dr. Elette Boyle.
+
+\paragraph{Agenda}
+
+January 11th's lecture has been rescheduled for Jan 2nd.
+
+\begin{itemize}
+  \item Proof expander code decoding convergence
+  \item Proof expander code decoding convergence
+  \item Linear time encoding
+\end{itemize}
+
+\section{Review}
+
+Last lecture we covered Binary Expander Codes, which are a family of codes that are defined as a mapping from a bipartite graph to a binary linear code.
+
+Given a bipartite graph \(G = (L, R, E)\) such that \(|L| \ge |R|\). The adjacency matrix \(A_G\) of the bipartite graph is the parity check matrix of a \([|L|,\frac{|L|-|R|}{|L|},?]_2\) binary linear code.
+
+The \((n,m,D,\gamma,\alpha)\) bipartite expander is a bipartite graph \(G=(L,R,E)\) such that \(|L|=n\), \(|R|=m\), \(D\)-regular for which the following holds:
+
+\[\forall S\subseteq L, |S| \le \gamma n \Rightarrow |N(S)| \ge |S|\alpha\]
+
+We also proved that there exists a \((n,m,D,\gamma,D(1-\varepsilon))\) bipartite expander where \(D = \Theta\left(\frac{\log n/m}{\varepsilon}\right)\) and \(\gamma = \Theta\left(\frac{\varepsilon m}{n}\right)\).
+
+Let \(G\) be \((n,m,D,\gamma,D(1-\varepsilon))\) bipartite expander where \(\varepsilon < 1/2\).
+Then, for any \(S \subseteq L\), \(|S| \le \gamma n\), it follows that \(|N(S)| \ge |S|D(1-\varepsilon)\) and \(|U(S)| \ge |S|D(1-2\varepsilon)\).
+
+We proved a weaker bound on the distance \(d \ge \gamma n + 1\).
+The proof follows from contradiction that there is a unique neighbor for a codeword with \(\gamma n\) 1s.
+But this contradicts the parity check, which means the minimum hamming weight is \(\ge \gamma n + 1\).
+
+Then we tightened this by proving that \(d \ge 2\gamma (1-\varepsilon) n\).
+The proof follows from splitting the 1s of a codeword into two parts, one of size exactly \(\gamma n\).
+The overlapping and leftover neighbors shows this contradiction.
+
+This gives us a binary linear code with rate \(\frac{|L| - |R|}{|L|}\), which is asymptotically constant.
+The distance for this code is \(\Theta(\frac{\varepsilon m}{D}(1-\varepsilon)) \ge \Theta(\frac{m}{\log n/m})\), which is a asymptotically constant relative distance.
+
+\section{LDPC Codes}
+
+Low density parity check codes.
+In 1962 Gallager proved\cite{gallager1962low} that random low-weight bipartite graph yields code with good rate and distance.
+
+This was refined later to have the same properties with efficient decoding using expander graphs\cite{sipser1996expander}.
+
+
+\clearpage
+\section{Efficient Decoding of Expander Codes}
+
+The intuition is given a bipartite graph and a codeword of vertices on the left side, we check the parity, and flip a bit in the codeword that has mostly unsatisfied parity checks (satisfied = 0, ...). It repeats this until convergence.
+
+\paragraph{Formally}
+
+Given a bipartite graph \(G=(L,R,E)\) for an expander code \((n,m,D,\gamma,\alpha)\) and a received codeword \(\vec{y}\).
+The decoding algorithm iteratively flips the bit \(y_l\) with a strict majority of unsatisfied parity checks.
+If each step, if such a \(l \in L\) exists, then we flip the bit \(y_l\).
+This makes all the parity checks swap satisfaction.
+This strictly decreases the total number of unsatisfied parity checks \(r \in R\).
+
+We will need to show that such a \(y_l\) exists until all parity checks are satisfied.
+We will also need to show correctness.
+
+\subsection{Decoding algorithm}
+
+\paragraph{Input}
+
+\(G = (\overset{n}{L}, \overset{m}{R}, E)\), \(\vec{y} \in \{0,1\}^n\) codeword.
+
+\paragraph{Setup}
+
+\marginpar{Basically, put each left vertex in buckets according to how many parity checks are unsatisfied}
+For every \(r \in R\), let \(\Pcheck(r) = \sum_{l \in N(r)} y_l\) over \(\mathbb{Z}_2\).
+Initialize \(\vec{y}'\) be \(\vec{y}\), and \(S_0, \ldots, S_D\) be \(\emptyset\) sets.
+For every \(l \in L\), let \(j_l = |\{r \in N(l) : \Pcheck(r) = 1\}| = \text{\# neighbor constraints unsatisfied}\).
+Let \({S_j}_l \gets {S_j}_l \cup \{l\} \).
+
+\paragraph{Iterate}
+
+Until \(S_{\left\lceil \frac{D}{2} \right\rceil}, \ldots, S_D\) are empty, find the largest \(j\) such that \(S_j \ne \emptyset\).
+Choose some \(l \in S_j\).
+Flip the \(l\)th bit in \(\vec{y}'\): \(y'_l \gets 1 - y'_l\).
+For each constraint \(r \in R\) with \(r \in N(l)\), update \(\Pcheck(r) \gets 1 - \Pcheck(r)\).
+For each \(w \in N(r)\), update the number of satisfied constraints to \(j_w \pm 1\).
+Move \(w\) to the new \({S_j}_w\).
+
+\paragraph{Results}
+
+If \(S_0 = L\), then all the other sets are empty, and all the constraints are satisfied.
+In this case, output \(\vec{y}'\).
+Otherwise, output failure.
+
+\subsection{Complexity analysis}
+
+Setup is \(O(md)\) to compute \(\Pcheck(r)\).
+Initializing the buckets is \(O(D)\).
+Assigning bits to buckets is \(O(nD)\).
+
+Iteration takes us \(O(D)\) to find the bit to flip, \(O(D)\) updates, which comprise \(O(d)\) updates to sets and some constant factors.
+
+Altogether, this gives us \(O(md) + O(D) + O(nD)\) for setup, and \(O(D) + O(dD)\) for each iteration.
+We perform at most \(m\) iterations, because each iteration we strictly reduce the number of unsatisfied constraints.
+
+Overall, this gives us complexity of \(O(ndD) + mO(Dd) = O(ndD)\).
+
+\subsection{Proof of correctness}
+
+Let \(G\) be a \((n,m,D,\gamma, \frac{3}{4}D)\) bipartite expander whose right degree is bounded by \(d\).
+Note that \(D\) should be odd\footnote{This simplifies some of the analysis}.
+% Then, there exists an \(O(ndD)\) time algorithm that corrects up to \(\frac{\gamma n}{2}\) errors in the induced code \(C(G)\).
+% Note that if \(d,D \in O(1)\), this is linear time.
+Recall that the distance of this code is \(\ge 2\gamma (1-\varepsilon) n = \frac{3}{2} \gamma n\).
+This implies that the best decoding we can do is from \(3/4 \gamma n\).
+
+Correctness follows from 2 claims: first, that the algorithm continues iterating until it is at a codeword, and that the resulting codeword is the desired one.
+
+As a matter of notation, at any given iteration of the algorithm and current \(\vec{y}'\), denote \(v\) as the number of errors (i.e. the distance of \(\vec{y}\) to its closest codeword), and \(u\) as the number of unsatisfied constraints.
+
+\paragraph{Claim 1}
+
+If current \(\vec{y}'\) is such that \(0 < v \le \gamma n\), then there exists some \(l \in L\) for which we can make progress by flipping it (\(l \in S_j\) for some \(j > D/2\)).
+
+Let \(S \subseteq L\) be the set of positions in which \(\vec{y}'\) disagrees with closest codeword \(\vec{c}\).
+Note that \(|S| = v\) and \(v \ne 0 \Rightarrow S \ne \emptyset\).
+
+Recall that \(G\) is an expander with expansion factor \(\alpha = \frac{3}{4}D = (1 - \frac{1}{4})D\).
+Since \(|S| \le \gamma n\), it follows that \(|U(S)| \ge (1 - 2\underset{\frac{1}{4}}{\varepsilon}) D |S| = \frac{D}{2}|S|\) by our lemma about unique neighbors.
+
+Recall that \(\vec{y}' = \vec{c} + \vec{e}\) where \(\vec{c}\) is the codeword and \(\vec{e}\) is the error vector.
+Note that \(A_G \vec{y}' = A_G \vec{c} + A_G \vec{e} = \vec{0} + \vec{e} = \vec{e}\).
+From this linearity, it follows that any \(r \in U(S)\) is necessarily an unsatisfied constraint (as exactly 1 neighbor is 1).
+
+There are \(D |S|\) total edges from \(S\), and we know that \(\ge \frac{D}{2} |S|\) of these edges go to unsatisfied constraints.
+By pigeonhole, there must exist some \(l \in L\) such that at least \(\frac{D}{2}\) of its \(D\) edges go to unsatisfied constraints.
+
+% This follows if D is odd, but the proof if D is even was a little handwavy to me.
+
+% Example:
+%
+% y c e
+% 0 0 0
+% 1 0 1
+% 1 1 0
+% 0 1 1
+% 1 0 1
+% 0 0 0
+% 1 1 0
+%
+% TODO: record the graph for this code
+%
+
+\paragraph{Claim 2}
+
+Suppose that the original input \(\vec{y}\) is such that \(\Delta(\vec{y}, \vec{c}) \le \frac{\gamma n}{2}\) for the codeword \(\vec{c}\).
+We claim that for every iteration of the algorithm, it will always be the case that \(\Delta(\vec{y}', \vec{c})\) is less than \(\gamma n\).
+Recall that the distance of \(C(G)\) is at least \(\frac{3}{2}\gamma n\).
+
+% I conjecture the following is correct, but it does not follow from the proof:
+% As a result of this claim, we can also provide a stronger bound on the distance of \(C(G)\) to be at least \(2 \gamma n\).
+
+Note that in each iteration, \(\Delta(\vec{y}', \vec{c})\) changes by exactly 1 because we flip a single bit of \(\vec{y}'\).
+If we ever reach a state where \(\Delta(\vec{y}', \vec{c}) \ge \gamma n\), then we must reach a state where \(\Delta(\vec{y}', \vec{c}) = \gamma n\).
+This cannot be the initial step, because our starting point is by definition \(\Delta(\vec{y}, \vec{c}) \le \frac{\gamma n}{2}\).
+
+Suppose such a step exists.
+Consider the \(\vec{y}'\) from this iteration, and let \(S \subseteq L\) be the subset of indices such that \(y'_l \ne c_l\).
+By the lemma, this means that \(|S| = \gamma n \Rightarrow |U(S)| \ge (1 - 2\varepsilon)D|S| = \frac{1}{2}D \gamma n\).
+This implies that there are \(\ge \frac{1}{2}D \gamma n\) unsatisfied constraints.
+However, we started with \(\le \gamma n / 2\) errors, and as such the number of unsatisfied constraints was \(\le \frac{1}{2} D \gamma n\).
+Because we strictly decrease the number of unsatisfied constraints in each iteration of the algorithm, we cannot possibly arrive at such an intermediate step.
+
+\paragraph{Together}
+
+From claim 2, for any given iteration, we can use claim 1 to show that we will make progress.
+
+\section{Next Time}
+
+If you consider the bipartite graph with a singular \(R\), it defines codewords for its neighbor set...
+
+\end{document}
