@@ -1,0 +1,248 @@
+\documentclass{idc_msc}
+
+\usepackage{tikz}
+\usetikzlibrary{graphs,positioning,quotes}
+
+\title{Coding Theory\\\large Lecture 10}
+\date{2018-01-02 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Elette Boyle\\Typeset by Steven Karas}
+
+\newcommand{\Fq}[1][q]{{\mathbb{F}_{#1}}}
+\DeclareMathOperator*{\Vol}{Vol}
+\DeclareMathOperator*{\RS}{RS}
+\DeclareMathOperator*{\Pcheck}{Pcheck}
+\DeclareMathOperator*{\Dec}{Dec}
+\newcommand{\finiteuniform}[1][\mathbb{D}]{{\mathcal{U}_{#1}}}
+\newcommand{\BSC}[1][p]{{\text{BSC}_{#1}}}
+
+% \AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Coding Theory, taught by Dr. Elette Boyle at IDC Herzliyah in the fall semester of 2017/2018.
+Sections may be based on the lecture notes written by Dr. Elette Boyle.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item Locally Decodable Codes (self-synchronizing)
+  \item Hadamard Code
+  \item Reed-Muller Codes
+  \item Survey of known codes
+  \item Cryptographic applications
+\end{itemize}
+
+\section{Review}
+
+Last time we finished covering decoding binary expander codes.
+Expander codes are a subset of Low Density Parity Check (LDPC).
+
+Note that we can also consider more generic constructions of codes from bipartite graphs.
+Each parity vertex \(r \in R\) gives a more general constraint on its neighbors.
+Given a total ordering on the vertices, we can define a simple single-parity check code by defining the neighbors of \(r\) as a 
+
+\section{Locally Decodable Codes (LDC)}
+
+\paragraph{Intuition}
+
+Suppose that we start with a very long data stream \(m\).
+Instead of recovering the entire data stream, we simply want to robustly recover some subset of symbols.
+
+A simple way to do this is to decode the entire codeword, look up the symbols we want, and then throw away the rest.
+But we want to recover these symbols in sublinear time.
+
+We could encode the data stream into blocks, which is good, but very poor error correction guarantees.
+
+Locally Correctable Codes (LCC) are similar, but the goal is to recover symbols from the codeword itself.
+
+\subsection{Formally}
+
+A \(q\)-ary code \(C : [q]^k \to [q]^n\) is a \((r, \delta, \varepsilon)\) locally decodable code if there exists a randomized decoding algorithm \(\Dec : [q]^n \times [k] \to [q]\) that is robust and local.
+
+Robustness is defined as if for any index \(i \in [k]\) we are able to recover from some received message \(\vec{y} \in [q]^n\) within \(\Delta(C(\vec{x}),\vec{y}) \le \delta n\) distance of the original message \(\vec{x} \in [q]^k\) the symbol \(x_i\) with probability \(\ge 1 - \varepsilon\):
+
+\[\Pr[\Dec(\vec{y}, i) = x_i] \le 1 - \varepsilon\]
+
+Locality is defined as reading at most \(r\) symbols of \(\vec{y}\).
+
+% Sublinear complexity limits us to sublinear \(r\), and defining sublinear \(r\) is useful for cryptography
+
+\paragraph{A note on the parameters}
+
+Generally speaking, we want \(r\) to be small, \(\delta\) to be big, and \(\varepsilon\) to be small.
+
+For data transmission, we consider \(\delta\) to be constant (e.g. \(\sim 1/4\)), but we want \(n\) to be small, and we don't care so much about \(r\), so long as \(r \le k\).
+
+For cryptographic applications, we don't care much about \(\delta\), so long as \(\delta > 0\) and \(\varepsilon < 1/2\) is held as constant.
+Mostly cares about the tradeoff between \(r\) and \(n\).
+
+\subsection{Hadamard Code}
+
+Recall that \(C_{\text{Had}} : \{0,1\}^k \to \{0,1\}^{2^k}\).
+
+\[\vec{m} \to (\vec{m}, \vec{v})_{\vec{v} \in \{0,1\}^k}\]
+
+Indexed by \(\vec{y} \in \{0,1\}^{2^k}\) by vectors \(\vec{v} \in \{0,1\}^k\).
+
+% k times k by 2^k generator matrix with columns v gives us the codeword
+
+We can recover \(m_i\) by considering both \(\vec{v}\) and \(\vec{v} \oplus \vec{e_i}\) where \(\vec{e_i}\) is the unit vector with position \(i\):
+
+\[
+\vec{m} \cdot (\vec{v} \oplus \vec{e_i})
+= \vec{m} \cdot \vec{v} \oplus \vec{m} \cdot \vec{e_i}
+= (\vec{m} \cdot \vec{v}) \oplus m_i
+\]
+
+\[m_i = \vec{m} \cdot \vec{v} \oplus \vec{m} \cdot (\vec{v} \oplus \vec{e_i})\]
+
+\paragraph{Proof}
+
+The \([\overbrace{2^k}^{n},\overbrace{k}^{k}]\) Hadamard Code is \((r=2, \delta, 2\delta)\) locally decodable.
+
+Consider the following randomized decoding algorithm:
+
+\begin{lstlisting}[frame=L,mathescape=true,title={Local decoding Hadamard}]
+Dec($\vec{y}$, $i$):
+  Sample a random vector $\vec{v} \gets \{0, 1\}^k$
+  $y_{\vec{v}}$ = value of $\vec{y}$ at position $\vec{v}$
+  $y_{\vec{v}\oplus \vec{e_i}}$ = value of $\vec{y}$ at position $\vec{v} \oplus \vec{e_i}$
+  return $(y_{\vec{y}}) \oplus (y_{\vec{v} \oplus \vec{e_i}}) \in \{0,1\}$
+\end{lstlisting}
+
+Note that if the \(\vec{v}\) and \(\vec{v} \oplus \vec{e_i}\) positions of \(\vec{y}\) do not have error, then:
+
+\[
+\begin{aligned}
+  (y_{\vec{v}}) \oplus (y_{\vec{v} \oplus \vec{e_i}})
+  &= (\vec{m} \cdot \vec{v}) \oplus (\vec{m} \cdot (\vec{v} \oplus \vec{e_i})) \\
+  &= \vec{m} \cdot \vec{v} \oplus \vec{m} \cdot \vec{v} \oplus \vec{m} \cdot \vec{e_i} \\
+  &= m_i
+\end{aligned}
+\]
+
+So \(\Pr_{\vec{v}}[\Dec(\vec{y}, i) = m_i] \ge \Pr_{\vec{v}}[\vec{v},\vec{v} \oplus \vec{e_i}\text{ not in error}]\).
+
+Let \(S \subseteq \{0,1\}^n\) be the error positions in \(\vec{y}\).
+Suppose that \(|S| \le \delta n\).
+
+\[\Pr_{\vec{v}}[\vec{v} \in S] = \frac{|S|}{n} \le \delta\]
+\[\Pr_{\vec{v}}[\vec{v} \oplus \vec{e_i} \in S] = \frac{|S|}{n} \le \delta\]
+
+\[\Pr_{\vec{v}}[(\vec{v} \in S) \text{ or } (\vec{v} \oplus \vec{e_i} \in S)] \le 2 \delta\]
+
+Therefore, \(\Pr_{\vec{v}}[\Dec \text{ is correct}] \ge 1 - 2\delta\)
+
+From the union bound, it follows that the aggregate error is less than \(2\delta\).
+
+\subsection{Systematic Codes}
+
+% Polynomial blowup for codewords, but sublinear local decoding.
+
+As a side note, \(k\) field elements can be construed as a \(\deg \le k-1\) polynomial.
+Either via coefficients or via the 1st \(k\) evaluations of the polynomial (and interpolating the rest of the codeword).
+This has the advantage of including the original message as the first \(k\) elements of the codeword.
+Codes where codewords include the original message are called \emph{systematic codes}.
+
+For a systematic code, local correction implies local decoding.
+
+\paragraph{Formally}
+
+A code \(C : [q]^k \to [q]^n\) is systematic if for every subset \(S \subseteq [n]\) of size \(k\) such that \(\forall \vec{x} \in [q]^k\), the codeword \(C(\vec{x})\) restricted to coordinates in \(S\) is equal to \(\vec{x}\).
+
+\subsection{Reed Solomon as an LDC}
+
+Take some Reed Solomon code with large \(k\). This defines a \(\deg \le k-1\) polynomial:
+
+\[f_{\vec{m}} = \sum_{i=0}^{k-1} m_i x^i\]
+\[\vec{m} \to (f_{\vec{m}}(\alpha_1), \ldots, f_{\vec{m}}(\alpha_n))\]
+
+For any \(k-1\) symobls of the codeword (excluding \(\alpha=i\)) gives us no information on \(m_i\).
+Any value of \(m_i \in \Fq\) is equally likely.
+
+As a result, Reed Solomon is not a good LDC.
+
+\subsection{Reed-Muller Codes}
+
+Reed-Muller codes are a generalization of Reed-Solomon codes to higher dimensions (multi-variate polynomials).
+
+Effectively, each codeword is a surface in this higher dimension.
+
+\paragraph{Formally}
+
+A Reed-Muller code has 3 parameters: \(q\) - field size, \(m\) dimensions (number of variables), and \(\ell\) degree bound.
+The corresponding RM code consists of all evaluations (inputs ranging over \(\Fq^m\)) of all polynomials of total degree bounded by \(\ell\) in \(\Fq[q][x_1,\ldots,x_m]\).
+
+This means that codewords are low degree polynomials.
+
+The block length \(n = q^m\) (all \(\Fq^m\) input evals).
+
+The dimension of this code is \(k = \binom{m+\ell}{\ell}\) which is the number of free coefficients in such a polynomial.
+\footnote{Can be thought of as distributing \(\ell\) balls into \(m+1\) bins representing \(x_m,\ldots,x,1\) monomials}
+
+The distance of the code is \(d = \left(1 - \frac{\ell}{q}\right) q^m\)
+
+\paragraph{Schwartz Lemma}
+
+Let \(f \in \Fq[q][x_1, \ldots, x_m]\) be a non-zero polynomial of total degree \(\le \ell < q\).
+
+\[
+  \Pr_{(a_1,\ldots,a_m) \gets \Fq^m} [f(a_1,\ldots,a_m) = 0] \le \frac{\ell}{q}
+\]
+
+The full proof is by induction on the number of variables.
+
+This is another way of stating the bound on the number of roots.
+
+\subsubsection{Local Correction}
+
+Let \(m, \ell \in \mathbb{N}\) and \(q\) is a prime power.
+We claim there exists a linear code of dimension \(k = \binom{m + \ell}{\ell}\) in \(\Fq^n\) where \(n = q^m\) that is a \((\ell+1, \delta, (\ell + 1) \delta)\) locally correctable code for any \(\delta > 0\).
+
+Given oracle access to \(\vec{y} = \text{evals on all of \(\Fq^m\)}\) corrupted from a codeword in at most \(\delta\) fraction of coordinates.
+Also given a point \(\vec{w} \in \Fq^m\) which corresponds to the index of the codeword we wish to recover.
+
+Choose a random line through \(\vec{w}\) in \(\Fq^m\) (the floor) for some randomly chosen vector \(\vec{v} \in \Fq^m\)
+\[L = \{\vec{w} + \lambda \vec{v} \mid \lambda \in \Fq\}\]
+
+Let \(S\) be an arbitrary subset of \(\Fq \setminus \{0\}\) with \(|S| = \ell + 1\).
+This is the number of evaluation points in the line needed to interpolate the polynomial.
+
+Query \(\vec{y}\) at the \(\ell + 1\) coordinates corresponding to these points on the line:
+
+\[
+  \{\vec{w} + \lambda \vec{v} \mid \lambda \in S\} \subseteq L
+\]
+
+Denote the answers by \(\{e_\lambda\}_{\lambda \in S}\) where \(e_\lambda \in \Fq\) is the evaluation at \(\vec{w} + \lambda \vec{v}\).
+
+Note that the induced cross section (plane as defined by \(L\)) gives us a Reed-Solomon code.
+
+Recover the unique univariate polynomial \(h \in \Fq(x)\) with \(\deg h \le \ell\) such that \(h(\lambda) = e_\lambda \;\forall \lambda \in S\).
+
+Output \(h(0)\).
+
+\paragraph{Proof of \(\varepsilon\)}
+
+If there are no errors in the queried values \(\{e_\lambda\}_{\lambda \in S}\), then we get a correct recovery.
+
+\[
+  \Pr_{\vec{v}}[\text{ there is an error in the queries}] \le \sum_{\lambda \in S} \Pr_{\vec{v}}[\text{there is an error not in the eval point}]
+\]
+% by union bound
+
+Each \(\vec{w} + \lambda \vec{v}\) is uniform over \(\Fq^m\).
+
+Therefore, we have less than \(\le |S| \frac{\text{\# error locations}}{\text{\# total lcoations}}\).
+
+This implies that \(\le (\ell + 1) \delta\) probability of accurate correction.
+
+\section{Next Time}
+
+Applications to cryptography
+
+\end{document}
