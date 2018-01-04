@@ -1,0 +1,275 @@
+\documentclass{idc_msc}
+
+\usepackage{tikz}
+\usetikzlibrary{graphs,positioning,quotes}
+
+\title{Coding Theory\\\large Lecture 11}
+\date{2018-01-04 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Elette Boyle\\Typeset by Steven Karas}
+
+\newcommand{\Fq}[1][q]{{\mathbb{F}_{#1}}}
+\let\E\relax
+\DeclareMathOperator*{\E}{E}
+\DeclareMathOperator*{\Vol}{Vol}
+\DeclareMathOperator*{\RS}{RS}
+\DeclareMathOperator*{\Pcheck}{Pcheck}
+\DeclareMathOperator*{\Dec}{Dec}
+\newcommand{\finiteuniform}[1][\mathbb{D}]{{\mathcal{U}_{#1}}}
+\newcommand{\BSC}[1][p]{{\text{BSC}_{#1}}}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Coding Theory, taught by Dr. Elette Boyle at IDC Herzliyah in the fall semester of 2017/2018.
+Sections may be based on the lecture notes written by Dr. Elette Boyle.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item LDCs in Private Information Retrieval
+  \item Codes for Universal Hashing
+  \item Fuzzy Vaults
+  \item Finding Defects - Group Testing
+\end{itemize}
+
+\section{Review}
+
+Last time, we covered Locally Decodable Codes, and showed two examples of such codes: Hadamard codes and Reed-Muller codes.
+
+\[(\underbrace{r}_{\text{\# of queries}},\underbrace{\delta}_{\text{\(\le \delta\) corruptions}},\underbrace{\varepsilon}_{\text{\(\le \varepsilon\) decoding error}})\text{-LDC}\]
+
+\subsection{Hadamard Codes}
+
+Hadamard codes are \((2, \delta, 2\delta)\)-LDC.
+
+Local decoding is done with some random vector \(\vec{v}\):
+
+\[m_i = \vec{v} \oplus (\vec{v} \oplus \vec{e_i})\]
+
+The analysis is based on the union bound on the error hitting either \(\vec{v}\) or \(\vec{v} \oplus \vec{e_i}\).
+
+\subsection{Reed-Muller Codes}
+
+Multivariate Reed-Solomon codes in a nutshell. Parameterized by \(m,q,\ell\).
+
+\(m\) is the dimension (number of variables). \(q\) is \(\Fq\). \(\ell\) is the maximal degree.
+Derived from these is code dimension \(k = \binom{m = \ell}{\ell}\) and \(n = q^m\).
+
+Can achieve \((\ell+1,\delta, (\ell + 1)\delta)\)-LCC.
+
+Basically sample \(\ell\) points along a random line, and interpolate the missing codeword symbol.
+
+
+\clearpage
+\section{Private Information Retrieval}
+
+Specifically, we'll discuss a primitive called Private Information Retrieval (PIR).
+
+Given a set of servers with an identical set of data \(DB \in \{0,1\}^k\), we want to learn the \(i\)th bit in the database.
+We don't want the servers to learn any information about what \(i\) is.
+A basic assumption here is that the servers do not communicate with each other.
+
+A trivial solution is to send the entire database.
+
+Interesting questions here are the number of servers needed, and how much communication is necessary?
+
+\paragraph{1 server}
+
+As a special case, we cannot achieve PIR without sending the full database without computational assumptions (e.g. factoring is superpolynomial).
+
+\paragraph{2 servers}
+
+Before the work by Dvir and Gopi\cite{DBLP:journals/jacm/DvirG16}, the best known was \(n^\varepsilon\).
+They presented subpolynomial communication: \(< n^\varepsilon\) where \(\forall \varepsilon > 0\).
+
+\paragraph{3+ servers}
+
+Best known solutions use locally decodable codes.
+
+\(r\)-query LDC with special smoothness property gives us \(r\)-server PIR.
+
+\subsection{Formal Definition}
+
+Given a database \(x \in \{0,1\}^k\), \(r \in \mathbb{N}\) non-communicating servers, where a client holds an index \(i \in [k]\), and the servers follow instructions but try to learn \(i\).
+
+PIR is a triple of algorithms\footnote{multi-round approaches exist, but a single round approach is the best we know of}:
+
+\[(\underbrace{Q}_{\text{query}}, \underbrace{A}_{\text{answer}}, \underbrace{R}_{\text{Reconstruct}})\]
+
+\paragraph{Query}
+
+The client on input \(i \in [k]\) samples entropy source \texttt{rand} and evaluates:
+
+\[(q _1, \ldots, q_r) = Q(i; \texttt{rand})\]
+
+For every \(j \in [r]\), the client sends \(q_j\) to server \(S_j\).
+
+\paragraph{Answer}
+
+Each server \(S_j\) computes and sends the answer back to the client:
+
+\[\text{ans}_j = A(j,\vec{x},q_j)\]
+
+\paragraph{Reconstruct}
+
+The client reconstructs the output:
+
+\[x'_i = R(a_1, \ldots, a_r, i, \texttt{rand})\]
+
+\paragraph{Correctness}
+
+For any \(k \in \mathbb{N}\), \(\vec{x} \in \{0,1\}^k\), and \(i \in [k]\), then with high probability over the choice of initial query generation, it holds that \(x'_i = x_i\).
+
+\paragraph{Privacy}
+
+Each server individually learns no information on \(i\).
+
+For any \(k\), any \(j \in [r]\), and any \(i \ne i^* \in [k]\), it holds that:
+
+\[\{q_j(i, \texttt{rand})\} \equiv \{q_j(i^*, \texttt{rand})\}\]
+
+\paragraph{Smoothness}
+
+A correct local decoding algorithm \(\Dec\) for an \(r\)-query LDC is smooth if for any \(k\), and any target index \(i \in [k]\), then for any query \(j \in [r]\) it is individually uniform over \([n]\).
+
+Note that both Hadamard and Reed-Muller decoders are smooth, which arises from them sampling uniformly over the codeword.
+
+In some sense, smoothness is without loss of generality.
+The intution for this is that if we are too far from uniform, then there are some positions that are very likely to be queried, which causes too high probability for decoding error.
+Formally, we can show that the existence of an LDC with certain properties implies the existence of a smooth LDC with similar properties.
+
+On the other hand, smoothness implies a form of robustness to errors (to within a factor of \(r\)). This follows from the probability that our queries will hit outside the corrupted regions.
+
+\subsection{PIR from LDC}
+
+Let \(C: [q]^k \to [q]^n\) be a smooth \((r,0,0)\) LDC\footnote{note that we defined \(q = 1\) until now for convenience}.
+We claim there exists a \(r\)-server PIR with \(O(r \log_2(nq))\) bits of communication to privately access a database in \([q]^k\).
+
+\paragraph{Proof Sketch}
+
+Each server encodes \(C(\vec{x}) \in [q]^n\).
+The client runs the local decoding algorithm.
+
+\begin{lstlisting}[frame=L,mathescape=true,title={Query}]
+Run $\Dec$ on target index $i$
+$l_1,...,l_r$ = $r$ query locations into $C(\vec{x})$
+\end{lstlisting}
+
+\begin{lstlisting}[frame=L,mathescape=true,title={Answer}]
+Given $l_j$
+$\vec{y}$ = $C(\vec{x})$
+Return $\vec{y}_{l_j}$
+\end{lstlisting}
+
+\begin{lstlisting}[frame=L,mathescape=true,title={Reconstruct}]
+Finish executing $\Dec$ on $y_{l_1},...,y_{l_r}$
+Output $x_i$
+\end{lstlisting}
+
+\paragraph{Correctness}
+
+Follows from the correctness of LDC decoding.
+
+\paragraph{Communication complexity}
+
+Client sends index \(l_j \in [n]\) per server.
+Server responds with \(y_{l_j} \in [q]\) each.
+
+\[
+\begin{aligned}
+&= r \cdot (\log_2 n + \log_2 q) \\
+&= r \log_2 nq
+\end{aligned}
+\]
+
+\paragraph{Privacy}
+
+By smoothness, the query is uniform, and therefore private.
+
+\paragraph{Remark}
+
+Note that for Hadamard, the communication overhead in the 2-server PIR is \(n = 2^k \Rightarrow \log n = k\).
+
+
+\clearpage
+\section{Codes for Universal Hashing}
+
+Utilizing ECCs for constructing a Strong Universal Hashing function.
+
+\paragraph{Hash Family}
+
+Let \(D, \Sigma\) be sets and \(m \in \mathbb{N}\).
+A hash family \(\mathcal{H}\) for domain \(D\), range \(\Sigma\) is a set of functions \(\{h_1,\ldots,h_m\}\) such that \(h_i : D \to \Sigma\).
+
+Note that for \(|D| \gg |\Sigma|\), many applications desire it to be computationally hard to find any \(x \ne x' \in D\) such that \(h_i(x) = h_i(x')\). We will consider a weaker bound.
+
+\paragraph{Almost Universal Hash Family}
+
+A hash family \(\{h_1, \ldots, h_m\}\) defined over some domain \(D\), range \(\Sigma\) is an \(\varepsilon\)-almost universal hash family for some \(0 < \varepsilon \le 1\) if for any \(x \ne y \in D\), for a randomly chosen \(i \gets [m]\):
+
+\[\Pr_{i \gets [m]}[h_i(x) = h_i(y)] \le \varepsilon\]
+
+An lower bound on \(\varepsilon\) is \(\frac{1}{|\Sigma|} \le \varepsilon\).
+Such a hash family where \(\varepsilon = \frac{1}{|\Sigma|}\) is called \emph{Universal}.
+
+\subsection{Application of Universal Hashing}
+
+Fast table lookup data structure.
+Store a set of \(N\) items from \(D\) where \(|D| \gg N\).
+
+We want to do this such that we have low storage.
+We also want low lookup time: given some \(x \in D\), quickly check if \(x \in \text{set }S\).
+
+\paragraph{Ordered List}
+
+Store \(N\) items in sorted arrays.
+\(O(N)\) space, with \(O(N \log N)\) preprocessing and \(O(\log N)\) lookup time.
+
+\paragraph{Universe Array}
+
+Store array of size \(D\) of flags. \(O(D)\) space, \(O(D)\) preprocessing, and \(O(1)\) lookup.
+
+\paragraph{Using Universal Hashing}
+
+With domain \(D\) and some range \(\Sigma\), create a hash table.
+Store an array of linked lists (hash table with chaining).
+
+Choose the \(\Sigma\) such that the expected bucket chain lengths will be constant.
+
+Uses \(O(N + |\Sigma|)\) space, and \(O(N + |\Sigma|)\) preprocessing, with \(O(\varepsilon)\) lookup time.
+
+\paragraph{Complexity of Lookup}
+
+Let \(\mathcal{H} = \{h_1,\ldots,h_m\}\) \(\varepsilon\)-almost universal hash family.
+Then for any distinct \(x, a_1, \ldots,a_N \in D\):
+
+\[
+\E_{i \gets [m]}\left[|\{a_j \mid h_i(a_j) = h_i(x) \}|\right] \le \varepsilon N
+\]
+
+A formal proof of this follows by linearity of expectation.
+
+Suppose that we want \(|\Sigma| = O(N)\) to not hurt our space or preprocessing time.
+There exist (left as an exercise to the reader) such families that \(\varepsilon = \frac{1}{|\Sigma|} \sim \frac{1}{N}\)
+
+\section{Fuzzy Vaults}
+
+For using biometric data as authentication, where scans are not identical, and to map them to bitstreams (e.g. after rotational/lens correction, uses ECC to map to a canonical bitstream).
+
+\section{Defect detection - Group testing}
+
+Given a population of size \(n\) where a small subset \(\ell \ll n\) have a rare disease.
+When given a test that acts on a subset and detects any presence, identify the subset of the population with a minimum number of tests.
+
+If we consider the test as an almost XOR-like construction, we can construct some parity check matrix that produces a syndrome, especially when we use a low density parity check.
+
+\section{Next Time}
+
+Next week's lecture was moved to this week. Next lecture will be held on January 18th.
+
+\end{document}
