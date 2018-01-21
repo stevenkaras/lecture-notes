@@ -1,0 +1,263 @@
+\documentclass{idc_msc}
+
+\title{Machine Learning\\\large Lecture 13}
+\date{2018-01-21 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Shai Fine\\Typeset by Steven Karas}
+
+% renew commands for LatexTools inline preview
+\renewcommand{\T}{{\mathpalette\raiseT\intercal}} % e.g. F^\T
+\let\Var\relax
+\DeclareMathOperator*{\Var}{Var}
+\let\Cov\relax
+\DeclareMathOperator*{\Cov}{Cov}
+\let\sign\relax
+\DeclareMathOperator*{\sign}{sign}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Machine Learning, taught by Dr. Shai Fine at IDC Herzliyah in the fall semester of 2017/2018.
+Sections may be based on the lecture slides written by Dr. Shai Fine.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item Neural Networks
+  \item Deep Learning
+\end{itemize}
+
+\section{History of ML}
+
+First commercial project was recognizing zip codes for the USPS back in the 1960's.
+Historically, the Perceptron\cite{rosenblatt1958perceptron} and Widrow-Hoff (ADALINE)\cite{widrow1960adaptive} were the first practical learning functions.
+In 1969, Minsky and Papert\cite{minsky1969perceptrons} proved that a simple perceptron cannot learn non-linear functions such as XOR.
+Backpropagation was invented in 1986 by Rumelhart, Hinton, and Williams\cite{rumelhart1985learning}, which reopened AI/ML research.
+In 1995, Vapnik and Cortes presented the SVM\cite{cortes1995support}.
+In 2006, Hinton and Salakhutdinov presented deep learning\cite{hinton2006reducing}, and proved that it is practical to pretrain such networks.
+
+\section{Perceptron}
+
+Perceptron provides a linear classification rule:
+
+\[out = \begin{cases}1 & \text{if } \sum\limits_{i=0}^d w_i x_i > 0 \\ 0 & \text{else} \end{cases} = \frac{1}{2}\left[sign\left(\sum_{i=1}^d w_i x_i + w_0\right) + 1\right]\]
+
+The goal is to minimize the classification error. Find the weight vector \(w = [w_0,\ldots,w_d]^\T\) that minimizes the criterion:
+
+\[E^{perc}(w) = - \sum_{i \in D_{miss}} w^\T (x^i y^i)\]
+
+Rosenblatt's Learning Algorithm is \emph{Stochastic Gradient Descent} with \(\eta\) learning rate and \(\hat{y^i}\) output of the \(i\)-th instance:
+
+\[w_j^{new} = w_j + \eta \Delta w_j = w_j + \eta(\hat{y^i} - y^i) x_j^i \]
+
+\subsection{Sigmoid Perceptron}
+
+Instead of using the classification error, we can replace the step function with the sigmoid function:
+
+\[\sigma(x) = \frac{1}{1 + e^{-x}} = \frac{e^x}{e^x + 1}\]
+
+Which gives a probability as an output:
+
+\[
+P(y_i \mid x_i, w) =
+\begin{cases}
+\pi_{i0} = 1-\frac{1}{1+e^{-w^\T x}} & \text{if } y_i = 0 \\
+\pi_{i1} = \frac{1}{1+e^{-w^\T x}} & \text{if } y_i = 1
+\end{cases}
+\]
+
+\subsection{K-Class output}
+
+\[
+P(y = k \mid x, W) =
+\begin{cases}
+\frac{\exp(w_{k0} + w_k^\T x)}{1 + \sum_{l=0}^{K-1} \exp(w_{l0}+w_l^\T x)} & k = 1,\ldots,K-1 \\
+\frac{1}{1 + \sum_{l=0}^{K-1} \exp(w_{l0}+w_l^\T x)} & k = K \\
+\end{cases}
+\]
+
+Derived from the log-odds rule (also called logit) for \(k = 1,\ldots,K-1\):
+
+\[
+\log \frac{\Pr(y = k \mid x)}{\Pr(y = K \mid x)} = w_{k0} + w_k^\T x
+\]
+
+With the classification rule:
+
+\[\arg\max_k P(y = k \mid x, W) \]
+
+\subsection{ReLU Perceptron}
+
+TODO - effectively equivalent to the SVM
+
+\subsection{Limitations}
+
+Minsky and Papert showed in 1969\cite{minsky1969perceptrons} that Perceptrons cannot represent nonlinear functions.
+
+
+\clearpage
+\section{Multi-Layer Perceptron (MLP)}
+
+Stack together perceptrons into multiple hidden layers, where the output of each layer is the input of the next.
+
+% TODO: add an example drawing
+
+The intuition is that the hidden layers can perform nonlinear transformations on the feature space, and then draw a linear decision boundary in the transformed space.
+
+Given an adequate number of hidden units, many-layer networks can learn arbitrary decision boundaries.
+Those boundaries need not create linear or even convex regions.
+
+A network has two modes: feedforward and learning.
+Feedforward mode simply gathers the outputs of the network given an input.
+Learning does both feedforward and then propagates the error backwards
+
+\paragraph{Practical Advice}
+
+MLPs allow parallel processing, and can have distributed computation and memory.
+They tend to be robust to noise and failures, but are sensitive to initialization and the scaling of the feature values.
+In practice, there isn't much difference between normalization and simple range scaling.
+
+MLPs are useful for high-dimensional data such as raw sensor data.
+The output is very flexible, and can be discrete or continuous.
+However, the output is not necessarily humanly comprehensible.
+
+\subsection{Autoencoders}
+
+Recall that PCA\footnote{That this is an unsupervised algorithm that does not take labels will appear on at least one of the exams} takes a subset of eigenvectors as the basis of a subspace to project the data onto, to minimize the reconstruction error.
+We proved the equivalence of the eigenvalues to the variance.
+
+We can consider PCA in terms of neural networks, as a linear transformation.
+In this case, the weights should converge on the eigenvectors.
+This concept of encoding the feature space into itself is called \emph{autoencoding}.
+
+Using nonlinear transfer functions for PCA is called Kernel PCA, which is included in scikits.
+If we add nonlinear transforms between the layers, we can learn efficient nonlinear representations.
+This approach is called \emph{deep autoencoding}.
+
+\subsection{Limits}
+
+Kolmogorov showed in 1957 that any continuous function on the unit n-dimensional hypercube can be represented by a neural network.
+
+Hava Siegelmann and Eduardo Sontag showed in 1991\cite{siegelmann1991turing} that neural networks are reducible to Turing Machines.
+
+
+\clearpage
+\section{Deep Learning}
+
+Deep learning is not covered within this course, and will not appear on the exam.
+There are courses that cover deep learning specifically.
+Deep learning got it's biggest wins from image recognition and computer vision.
+
+Generally speaking, deep learning is any neural network that has more than 1 hidden layer.
+
+\subsection{Convolutional Neural Networks (CNN)}
+
+First came out of NeoCognitron\cite{fukushima1982neocognitron} in 1982.
+First modern form was LeNet\cite{lecun1995learning} in 1998.
+Biggest jump came from ImageNet\cite{krizhevsky2012imagenet} in 2012.
+
+A convolutional neural network is comprised of multiple layers of convolutions, pooling, and non-linearities.
+Recall that a convolution considers a local set of features, and reduces the dimensionality by the width of the kernel.
+Generally constructed from convolutional layers that detect local conjunctions of upper layer features and pooling layers that merge semantically related features together.
+The extracted features are invariant to location, rotation, or scaling.
+
+\paragraph{Spatial Convolution}
+
+Convolutions are local functions that consider a sliding window of adjacent pixels.
+There is an example of this on slide 35.
+
+Traditional image recognition would handcraft such kernels as preprocessing steps.
+Deep learning is so powerful in part due to learning such kernels as part of the training process.
+
+Practically, the initialization is less important, but the minima in the hypothesis space tend to be more or less the same, but different.
+Why this is so is an open problem, and indicates that we don't understand the computational model/power from a mathematical standpoint.
+
+\paragraph{Pooling}
+
+To describe a large image, we can summarize the features detected in the convolutional layers by taking either the average or the max.
+This is generally done for dimensionality reduction, to encourage local invariance to translation/transformation, and reduces our tendency to overfit on specific images.
+
+An example of a CNN can be found on slides 37-38.
+
+\paragraph{AlexNet}
+
+AlexNet was constructed for the ImageNet competition in 2012, which was significantly larger than any other previous network: 60M parameters, 8 trainable layers.
+
+\paragraph{Current Trends}
+
+There is a trend towards smaller kernels, but much deeper networks, and less pooling.
+NVidia has pushed the field forwards much faster due to the computational capabilities of GPUs.
+
+\subsubsection{Transfer learning}
+
+Rather than train a full network from scratch, simply start from a pretrained model as the initialization, even if unrelated to the target domain.
+
+\paragraph{Generic feature extractor}
+
+Take the pretrained network, remove the last layer, and then treat the rest as a fixed feature extractor for another learning algorithm.
+
+\paragraph{Fine-tuning}
+
+Replace the last layer, and continue training for the new target domain.
+
+\paragraph{Style Transfer}
+
+There's an example on slide 46, but he did not describe how to do this in detail.
+
+
+\clearpage
+\section{Course recap}
+
+The lectures covered theory and practice of machine learning.
+
+We are expected to already know linear algebra and probability theory.
+
+The taxonomy of statistical learning is very important, but Bayes formula is hands down the most important thing we learned.
+
+\begin{itemize}
+  \item Known class conditional densities
+  \begin{itemize}
+    \item Bayes Decision Theorem
+  \end{itemize}
+  \item Unknown class conditional densities
+  \begin{itemize}
+    \item Supervised Learning
+    \begin{itemize}
+      \item Generative
+      \item Discriminative
+    \end{itemize}
+    \item Unsupervised Learning
+    \begin{itemize}
+      \item Mixture Models
+      \item Cluster Analysis
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+The homeworks taught us how to practically apply machine learning to a toy dataset.
+Generally speaking, we followed the Cross Industry Standard Protocol for Data Mining (CRISP-DM) model.
+
+\begin{enumerate}
+  \item Business understanding
+  \item Data understanding
+  \item Data preparation
+  \item Modeling
+  \item Evaluation
+  \item Deployment
+\end{enumerate}
+
+\paragraph{Grading}
+
+50\% homeworks. Each HW is worth 10\%.
+The exam must be passed with a passing grade to pass the course.
+
+\paragraph{Exam}
+
+Example questions will be published.
+We will not be asked to prove anything we didn't prove in class, but we will have to prove some particularly important things.
+
+\end{document}
