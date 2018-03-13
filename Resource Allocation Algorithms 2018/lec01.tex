@@ -1,0 +1,242 @@
+\documentclass{idc_msc}
+
+\title{Resource Allocation Algorithms\\\large Lecture 01}
+\date{2018-03-13 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Tami Tamir\\Typeset by Steven Karas}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\newcommand{\NPclass}{\mathcal{NP}}
+\newcommand{\Pclass}{\mathcal{P}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Resource Allocation Algorithms, taught by Dr. Tami Tamir at IDC Herzliyah in the spring semester of 2017/2018.
+Sections may be based on the lecture slides written by Dr. Tami Tamir.
+
+\section{Course Admin}
+
+Office hours will be held on Tuesdays between 14:30-15:30 in C118.
+
+Course materials will be posted to the website.
+
+Homework will make up 25\% of the grade, and the final exam 75\%.
+There will be approximately 6 exercises, and the lowest grade will be dropped.
+Homework should be completed on your own, however you can discuss the homework in groups (with attribution).
+Each homework will take on average 5-10 hours.
+
+Some of the slides may be used for the first time.
+
+\paragraph{Topics}
+
+This course will focus on algorithms that model resource allocation, and how to evaluate such algorithms.
+
+\begin{itemize}
+  \item NP Approximations
+  \item Performance evaluation
+  \item Scheduling Theory
+  \item Facility Location
+  \item Packing Problems
+  \item Max flow - extensions
+  \item Algorithmic Game Theory
+\end{itemize}
+
+\section{\texorpdfstring{\(\NPclass\)}{NP}-completeness}
+
+Established by Cook in 1971\cite{cook1971complexity}. \(\NPclass\) is a complexity class of problems whose solutions can be checked in polynomial time.
+It is known that \(\Pclass\) is a subset of \(\NPclass\). We do not yet know if \(\NPclass\) is equal to \(\Pclass\), or if \(\Pclass\) is a strict subset of \(\NPclass\).
+
+\(\NPclass\)-complete problems are \(\NPclass\)-hard and also in \(\NPclass\).
+\(\NPclass\)-hard problems are at least as hard as any problem in \(\NPclass\).
+Formally, a problem \(P\) is \(\NPclass\)-hard if all problems \(R \in \NPclass\) are polynomially reducible to \(P\): \(R \le_p P,\, \forall R \in \NPclass\).
+To show that a problem is \(\NPclass\)-complete, start by showing that the problem is in \(\NPclass\), and then show a reduction of any known \(\NPclass\)-complete problem to that problem.
+
+\subsection{Review: Reductions}
+
+A problem \(P\) is reducible to \(Q\), denoted by \(P \le_p Q\), if given an algorithm for solving \(Q\), we can use this solution to solve \(P\) with complexity \(p\).
+A problem is polynomially reducible if such a reduction can be shown to have polynomial complexity.
+
+\subsection{SAT}
+
+\textsc{SAT} is \(\NPclass\)-complete, as proven by Cook.
+The \textsc{SAT} problem is given a boolean expression with n variables, can we assign values such that the expression is true.
+
+\[
+( (x_1 \land x_2) \lor \lnot ( (\lnot x_1 \land x_3 ) \lor x_4)) \land \lnot x_2
+\]
+
+The proof was argued from first principles, not as a reduction.
+
+\subsection{k-clique}
+
+A clique in a graph \(G\) is a subset of vertices that are fully connected to each other.
+The decision problem of whether there is a clique of size \(k\) is called the \textsc{k-clique} problem.
+
+\paragraph{Proof of NP-completeness}
+
+\textsc{3-CNF} is also \(\NPclass\)-complete, so we'll show that by solving \textsc{k-clique}, you can solve \textsc{3-CNF}.
+
+Create a graph such that each vertex represents the members of each clause, and create edges to all other non-contradictory vertices from other clauses. Find a clique of size \(k\) where \(k\) is the number of clauses in \textsc{3-CNF}.
+
+\subsection{Traveling Salesman Problem}
+
+The \textsc{Traveling Salesman Problem} is a \(\NPclass\)-complete problem.
+The proof follows from a reduction from \textsc{Hamiltonian Cycle} to \textsc{TSP}.
+
+There are many other \(\NPclass\)-complete problems that are well known.
+% including several I didn't have time to capture in these notes.
+
+\section{Game Theory}
+
+A subfield of mathematics\footnote{Originally from economics} concerned with the construction and analysis of models describing situations where decision making is required.
+
+\paragraph{Rock, Paper, Scissors}
+
+In the game rock paper scissors for two players, each player has 3 possible strategies.
+We can present the outcomes of this game using a matrix of possible strategies and their relative payoff:
+
+\begin{tabu} to \linewidth{|r|c|c|c|}
+\hline
+& Rock & Paper & Scissors \\
+\hline
+Rock & 0,0 & -1,1 & 1,-1 \\
+\hline
+Paper & 1,-1 & 0,0 & -1,1 \\
+\hline
+Scissors & -1,1 & 1,-1 & 0,0 \\
+\hline
+\end{tabu}
+
+A binary game is one in which there are exactly two possible strategies for each player.
+
+\subsection{Dominant strategies}
+
+A dominant strategy is a strategy that offers a higher payoff than any other, irrespective of the other players' strategies.
+
+For example, take the prisoner's dilemma:
+
+\begin{tabu} to \linewidth{|r|c|c|c|}
+\hline
+& Confess & Remain Silent \\
+\hline
+Confess & 5,5 & 0,20 \\
+\hline
+Remain Silent & 20,0 & 1,1 \\
+\hline
+\end{tabu}
+
+In this game, the dominant strategy is to confess, as it always results in a better outcome (5 years instead of 20, or 0 years instead of 1).
+
+\subsection{Nash Equilibrium}
+
+A Nash equilibrium is a steady state wherein all players are no better off changing their strategies unilaterally.
+This can hold even when there is a global optimum that is better than the current equilibrium.
+
+In the prisoner's dilemma, both prisoner's confessing is the only Nash equilibrium for this game, even though both staying silent would provide them with a better outcome.
+
+\paragraph{Example: Asymmetric players}
+
+In this example, there are two Nash equilibriums, despite being asymmetric.
+
+\begin{tabu} to \linewidth{|r|c|c|c|}
+\hline
+& Football & Movie \\
+\hline
+Football & 5,8 & 2,2 \\
+\hline
+Movie & 2,2 & 8,5 \\
+\hline
+\end{tabu}
+
+\subsection{Mixed strategies}
+
+A mixed strategy for a player in a game with \(m\) strategies is a vector \(p_1,\ldots,p_m\) such that \(\sum_i p_i = 1\).
+\(p_i\) is the probability for that player to select strategy \(i\).
+
+It has been proven that every game has a mixed Nash equilibrium.
+
+\paragraph{Example: Asymmetric players with disjoint strategies}
+
+In this example, we consider a game which has no Nash equilibrium in pure strategies.
+The driver can either pay for parking, or not. The inspector can inspect or not.
+
+\begin{tabu} to \linewidth{|r|c|c|c|}
+\hline
+& Inspect & Don't Inspect \\
+\hline
+Pay & -10,5 & -10,10 \\
+\hline
+Don't pay & -100,90 & 0,-5 \\
+\hline
+\end{tabu}
+
+The mixed strategies \((0.95, 0.05)\) and \((0.1, 0.9)\) form a mixed Nash equilibrium for this game.
+
+Let \((x,1-x)\) be the optimal mixed strategy for the driver, and \((y, 1-y)\) be the optimal mixed strategy for the inspector.
+
+To find the optimal strategy of the driver, we want to discover the point where the payoff is independent of the inspector:
+
+\[
+\begin{aligned}
+  5x + 90(1-x) &= 10x - 5(1-x) \\
+  x &= 0.95
+\end{aligned}
+\]
+
+Similarly, we can find the optimal strategy of the inspector:
+
+\[
+\begin{aligned}
+  -10y - 10(1-y) &= -100y \\
+  y &= 0.1
+\end{aligned}
+\]
+
+The expected income of the driver is \(-10\), and the expected profit of the inspector is \(9.25\)\footnote{A full explanation of this expectation will be uploaded to the course website}.
+
+\paragraph{Example: Chicken}
+
+Two players driving towards each other. They can either swerve or drive.
+
+\begin{tabu} to \linewidth{|r|c|c|c|}
+\hline
+& Swerve & Drive \\
+\hline
+Swerve & 1,1 & -1,2 \\
+\hline
+Drive & 2,-1 & -M,-M \\
+\hline
+\end{tabu}
+
+Both Swerve/Drive and Drive/Swerve are pure equilibriums\footnote{A full explanation of a mixed Nash equilibrium will be uploaded to the course website}.
+
+\section{Resource Allocation Games}
+
+A resource allocation game is comprised of a set of resources, a set of players, wherein each player needs a subset of resources to fulfill their needs. There may be several such subsets, which define the strategy space of the player.
+
+In traditional resource allocation, a central utility assigns players to resources.
+In algorithmic game theory, each player is a selfish agent who selects their own assignments.
+
+\paragraph{Network Formation}
+
+See the slides, this is more graphical than I can copy down.
+
+Basically, the cost of establishing a new communication channel as part of the network is shared between all players who use that channel.
+
+In such games, there are three interesting questions:
+
+\begin{enumerate}
+  \item Is there a pure Nash equilibrium?
+  \item Can such an equilibrium be computed efficiently?
+  \item What is the quality of the equilibrium? This is typically the "social cost" as measured by the total cost to all players.
+\end{enumerate}
+
+\paragraph{Golden Balls}
+
+As an real life example of the prisoner dilemma, there was a \href{https://en.wikipedia.org/wiki/Golden_Balls}{British game show} that showed players who could split 100K GBP or steal the full amount.
+
+\end{document}
