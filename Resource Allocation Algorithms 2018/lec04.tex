@@ -1,0 +1,194 @@
+\documentclass{idc_msc}
+
+\title{Resource Allocation Algorithms\\\large Lecture 04}
+\date{2018-03-20 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Tami Tamir\\Typeset by Steven Karas}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\newcommand{\NPclass}{\mathcal{NP}}
+\newcommand{\Pclass}{\mathcal{P}}
+\DeclareMathOperator*{\avg}{avg}
+
+\begin{document}
+
+\maketitle
+
+\nocite{pinedo2016scheduling}
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Resource Allocation Algorithms, taught by Dr. Tami Tamir at IDC Herzliyah in the spring semester of 2017/2018.
+Sections may be based on the lecture slides written by Dr. Tami Tamir.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item Job Scheduling
+  \item Facility Locations
+\end{itemize}
+
+% I arrived 20 minutes late for the lecture due to horrible traffic
+% It looks like she didn't cover any new material before I came in, though...
+
+\section{Job Scheduling}
+
+\subsection{Precedence Constraints}
+
+For the problem \(P|\text{prec}|C_{\max}\), there are many variants, from the number of machines to constraints on the precedence graph (in-trees and out-trees have efficient algorithms).
+
+Note that for multiple machines, the problem \(P||C_{\max}\) is already \(\NPclass\)-hard.
+We can try \textsc{List-Scheduling} on the topological sort of the precedence graph.
+
+Graham presented in 1966 that for every topological sort \(L'\), every relaxed set of precedence constraints \(\Theta' \subseteq \Theta\), every vector of processing times \(p' \le p\), and a different set of machines \(m'\), it holds that:
+
+\[\frac{C'_{\max}}{C_{\max}} \le 1 + \frac{m - 1}{m'}\]
+
+As a special case, we see that if \(m' = m\), then we get the general case for \textsc{List-Scheduling}.
+
+\subsection{Unrelated machines}
+
+For the problem \(R||\sum_j C_j\), we are given a processing time matrix \(P\) such that \(p_{ij}\) is the processing time of job \(J_j\) on machine \(M_i\).
+An important observation is that the \(k\)-th last job to run on a machine contributes exactly \(k\) times its processing time to the sum of completion times.
+
+\subsubsection{Reduction to bipartite matching}
+
+A perfect bipartite matching is defined as \(|M| = |A| \le |B|\). If a minimum-weight perfect matching exists, it is possible to compute it in polynomial time.
+
+Let \(G\) be a bipartite graph \(V=A \cup B\) where \(A\) is the set of jobs, and \(B\) consists of \(nm\) vertices \(b_{ik}\) where vertex \(b_{ik}\) represents the \(k\)-th from the last position on machine \(i\).
+The edges \(E\) contain an edge \((v_j, w_{ik})\) with weight \(k \cdot p_{ij}\) for every node in \(A\) and every node in \(B\).
+
+\paragraph{Proof of reduction}
+
+We will prove that a minimum weight prefect matching corresponds to an optimal schedule.
+
+In an optimal schedule, every job appears exactly once, and every processing slot has exactly one job.
+Thus, the edges in a matching represent a valid schedule.
+The weights of the edges are such that they represent the objective function.
+
+We claim that for all machines, the vertices that participate in a perfect matching represent a sequence \(w_{i1}, \ldots, w_{il}\) where \(l\) is the number of jobs that are allocated in the schedule.
+For the purpose of contradiction assume that \(w_{ia}\) is not in the matching yet \(w_{i,a+1}\) is.
+For every \(V\), the weight of the edge....
+
+% TODO: she erased this literally seconds before I got to copy it off the board
+
+\subsection{Open shop scheduling}
+
+The problem \(O||C_{\max}\) is called open shop scheduling, where each job \(J_j\) consists of \(m\) sub-jobs.
+The order in which the different operations are performed is not constrained.
+Two sub-jobs of the same job cannot be performed simultaneously.
+
+This problem is \(\NPclass\)-hard for \(m>2\).
+
+There are two basic lower bounds on any correct schedule: the maximum sum of processing times on a particular sub-job type, and the maximum sum of processing times for a given job's sub-jobs.
+
+\paragraph{Example:}\ \\
+
+\begin{center}
+\begin{tabu} to \linewidth{|r|l|l|l|}
+\hline
+& Alice & Bob & Charlie \\
+\hline
+Bank & 8 & 4 & 5 \\
+\hline
+Post & 3 & 9 & 2 \\
+\hline
+\end{tabu}
+\end{center}
+
+\subsubsection{2-approximation}
+
+A busy schedule for \(O||C_{\max}\) is a schedule where there is no point in time where a job could be scheduled that it is not.
+This can be implemented by a simple greedy algorithm.
+Any such schedule is a 2-approximation.
+
+\paragraph{Proof}
+
+Consider the machine \(M'\) that finishes last. Let \(j'\) be the last job on \(M'\). At any time during the schedule, either \(M'\) is processing a job or \(j'\) is being processed by some other machine. This follows 
+
+\subsubsection{\texorpdfstring{\(\NPclass\)}{NP}-hardness}
+
+We will show that \(O_3||C_{\max}\) is \(\NPclass\)-hard by reduction from \textsc{Partition}.
+Let \(a_1,\ldots,a_n\) be an input for \textsc{Partition} such that \(\sum a_i = 2B\).
+% I can't read her handwriting...
+
+We construct an input for \(O_3||C_{\max}\) with \(3n+1\) jobs.
+
+Construct 3 jobs for each \(a_j\) such that \(p_{j1}=a_j\), \(p_{j2} = 0\); \(p_{j3} = 0\); \(p_{j1} = 0\), \(p_{j2} = a_j\), \(p_{j3} = 0\); and \(p_{j1} = 0\), \(p_{j2} = 0\), \(p_{j3} = a_j\).
+Construct a final job \(p_{3n+1, 1} = B\), \(p_{3n+1, 2} = B\), and \(p_{3n+1, 3} = B\).
+
+We claim that there exists a schedule for this with \(C_{\max} = 3B\) iff there is a partition.
+% There was a drawing of the last job being scheduled on the machines that shows the concept very well.
+
+\subsubsection[Optimal for O\_2||C\_max]{Optimal for \(O_2||C_{\max}\)\footnote{This will not be in the homeworks or on the exam}}
+
+The full algorithm is on slides 43-50.
+
+\subsection{Flow shop scheduling}
+
+Denoted as \(F_m||\), given \(m\) machines, all the jobs must be process by all the machines in the same order.
+Denote \(p_{ij}\) as the processing time required by \(J_j\) on \(M_i\).
+
+% There's an example of three jobs (pizza, pie, cake) on two machines (chef, oven).
+
+It is known that \(F_m||C_{\max}\) is \(\NPclass\)-hard for any \(m>2\).
+Johnson presented a simple optimal algorithm for \(m=2\) in 1954.
+
+In any \(F_2\) problem, the machine \(M_2\) is dependent upon \(M_1\) releasing jobs.
+As such, \(M_1\) is never idle in an optimal schedule.
+Since all the jobs are available at \(t=0\), our goal is to minimize the time in which \(M_2\) is idle.
+
+\paragraph{Permutation Schedule}
+
+A permutation schedule is a schedule in which the jobs are processed in the same order by \(M_1\) and \(M_2\).
+There exists an optimal schedule which is a permutation schedule \footnote{Proof follows from exchange argument, can be found on slide 53}.
+
+\paragraph{Johnson Ordering Rule}
+
+Let \(A\) be the set of jobs for which \(a_j \le b_j\).
+Let \(B\) be the rest of the jobs \(a_j > b_j\).
+
+The Johnson rule is to sort jobs in \(A\) by increasing values of \(a_j\), and then jobs in \(B\) by decreasing order of \(b_j\).
+
+\paragraph{Optimality}
+
+Number the jobs by the order in which they are scheduled in a permutation schedule.
+Let \(J_k\) be the first job on \(M_2\) after its last idle section.
+\(J_k\) was not waiting between \(M_1\) and \(M_2\).
+
+Note that \(C_k = a_1 + \ldots + a_k + b_k\).
+\(M_2\) is not idle after \(J_k\) is processed, so \(C_{\max} = a_1 + \ldots + a_k + b_k + \ldots + b_n\).
+
+For any \(c\), we can reduce \(c\) from all the \(p_ij\) values without changing the relative performance of different permutation schedules.
+
+Formally, the proof is by induction.
+For \(n=1\), any non-idle schedule is trivially optimal.
+Note that the Johnson ordering rule holds for this case.
+
+Assume the Johnson rule is optimal for \(n-1\) jobs.
+Now consider an instance with \(n\) jobs.
+Let \(c = \min_j \min a_j, b_j\). Reduce \(c\) from all processing times.
+As a result, there exists a job with \(a_j=0\) or \(b_j=0\).
+If \(a_j = 0\), then \(j \in A\), and it is first in \(A\), otherwise \(j \in B\), and it is last in \(B\).
+
+...
+
+The remainder of the proof can be found on slides 57, 58.
+
+\section{Facility Location}
+
+Facility location is the set of problems surrounding where facilities that provide services should be located so as to maximize some objective function (typically min max distance or min sum distance).
+
+Antennas are a currently popular application of such algorithms\footnote{Considerations for antennas are more complex than we can cover in this course, as they service asymmetric areas, frequency reuse, non-convex areas, etc.}.
+
+There are some different questions we can ask, for example where facilities should be located, how many facilities are required.
+We can then apply many different constraints on the problem, such as differing costs, exclusive allocation, capacities, dynamic clients, etc.
+We can also have different location models, from planar models which we consider as a continuous optimization problem, to network models where there are a finite number of locations with differing costs.
+
+Sometimes, these problems are easy, but other times they are \(\NPclass\)-hard, and sometimes approximate solutions are sufficient as the input data is estimated anyways.
+
+\section{Next week}
+
+As per Dr. Tamir, the last lecture of the semester will only be a review session.
+
+\end{document}
