@@ -1,0 +1,210 @@
+\documentclass{idc_msc}
+
+\title{Resource Allocation Algorithms\\\large Lecture 05}
+\date{2018-04-24 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Tami Tamir\\Typeset by Steven Karas}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\newcommand{\NPclass}{\mathcal{NP}}
+\newcommand{\Pclass}{\mathcal{P}}
+\DeclareMathOperator*{\avg}{avg}
+
+\begin{document}
+
+\maketitle
+
+\nocite{pinedo2016scheduling}
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Resource Allocation Algorithms, taught by Dr. Tami Tamir at IDC Herzliyah in the spring semester of 2017/2018.
+Sections may be based on the lecture slides written by Dr. Tami Tamir.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item Kahoot quiz
+  \item Facility Locations
+\end{itemize}
+
+\section{Facility Location}
+
+Facility location is the set of problems surrounding where facilities that provide services should be located so as to maximize some objective function (typically min max distance or min sum distance).
+
+Antennas are a currently popular application of such algorithms\footnote{Considerations for antennas are more complex than we can cover in this course, as they service asymmetric areas, frequency reuse, non-convex areas, etc.}.
+
+There are some different questions we can ask, for example where facilities should be located, how many facilities are required.
+We can then apply many different constraints on the problem, such as differing costs, exclusive allocation, capacities, dynamic clients, etc.
+We can also have different location models, from planar models which we consider as a continuous optimization problem, to network models where there are a finite number of locations with differing costs.
+
+Sometimes, these problems are easy, but other times they are \(\NPclass\)-hard, and sometimes approximate solutions are sufficient as the input data is estimated anyways.
+
+\subsection{Planar Location Models}
+
+A mathematical plane (typically embedded in a 3-dimensional space), using different distance metrics for the objective function.
+
+\begin{itemize}
+  \item Euclidean distance
+  \item Manhattan distance
+  \item \(I_p\) norm\footnote{we will not discuss this metric in this course}
+\end{itemize}
+
+Example objective functions:
+
+\begin{itemize}
+  \item Single facility minisum - Establishing a single new facility to minimize sum of distances between clients to new and existing facilities.
+  \item Single facility minimax - Establishing a single new facility to minimize max distance between clients to new and existing facilities.
+  \item Multi-facility minisum - as above, but with multiple facilities
+  \item Multi-facility minimax - as above, but with multiple facilities
+\end{itemize}
+
+\subsubsection{Planar single facility - Minisum Manhattan distance}
+
+Given \(m\) existing customers with locations \(l_i\) and weight \(w_i\), establish a single facility to minimize total distance traveled.
+
+An optimal solution is given by algebraic derivation:
+
+\[f(l_f) = \sum_{i=1}^m w_i d(l_f, l_i)\]
+
+For Manhattan distance, distance is component-wise independent, so we can consider each one as a single optimization.
+
+\subsection{Graph Location Models}
+
+A better model for many applications, especially when the cost of modifying an existing network is sufficiently high.
+Sometimes a more generic model may provide quicker approximations, and guide future modifications of the network.
+
+\begin{description}
+  \item[Path] a path is a sequence of edges leading from one vertex to another.
+  \item[Cycle] a cycle is a nontrivial path that begins and ends at the same vertex.
+  \item[Tree] a connected, cycle-free graph. As a property, there is a unique path between any two vertices.
+  \item[Distance] the distance between two vertices is the length of the shortest path between them.
+\end{description}
+
+Example objective functions:
+
+%TODO: remove this if all are covered by following sections
+
+\begin{itemize}
+  \item Coverage - how many facilities need to be established to ensure all vertices are within a given distance of any facility.
+  \item Center problems - k-centers. Minimize maximum distance between facilities and customers.
+  \item Median models - k-medians. Minimize the sum of distances between customers and the closest facility.
+  \item Fixed charge - Minimize sum of facility establishment and transportation costs
+  \item Integrated production-distribution models - considers the total cost of production and shipping.
+  \item Routing models - Vehicle Routing Problem (VRP) - deliver product from warehouses and return. TSP is a special case of this.
+\end{itemize}
+
+\subsubsection{Coverage}
+
+How many facilities need to be established to cover all customers within some distance.
+Variants include per-customer requirements, restricting potential facility locations to only at vertices or allowing them along vertices.
+
+There exists a \(\Pclass\)-time algorithm to solve this for trees.
+
+The generic problem is \(\NPclass\)-hard.
+We will prove this by reduction from \textsc{Dominating Set}.
+A dominating set in an undirected graph is a collection \(S\) of vertices with the property that every vertex \(v \in G\) is either in \(S\) or there is an edge between \(v\) and some vertex in \(S\).
+
+Given a problem for \textsc{DS}, construct a new graph such that the weight of all vertices and edges is 1.
+Solving coverage for such a network gives a solution for \textsc{Dominating Set}.
+
+\subsubsection{k-center}
+
+Establish \(k\) facilities so as to minimize the maximum distance between a customer and its nearest facility (a minimax problem).
+We distinguish between vertex center which restricts facility locations to vertices, and absolute center which allows facilities to be located anywhere along the network.
+
+\paragraph{1-Center in a general network}
+\marginpar{It is easy to construct instances for which the absolute center is not along an edge adjacent to the vertex center.}
+
+Let \(x\) be any point on the network.
+The distance between \(x\) and the node of \(G\) which is farthest away from it is denoted as \(m(x) = \max_{v \in V} d(x,v)\).
+Define a local center as a point \(x_e\) on an edge \(e\) if for every point \(x\) along the edge include both endpoints \(p, q\), it holds that \(m(x_e) \le m(x)\).
+Define a vertex center as a vertex \(v^* \in V\) if for every \(v \in V\), \(m(v^*) \le m(v)\).
+Define an absolute center \(x^* \in G\) as a point if for every point \(x \in G\), it holds that \(m(x^*) \le m(x)\).
+
+For vertex centers, find the all-pairs shortest paths, and select the vertex with the shortest distance to all other vertices.
+
+For absolute centers, find all the local centers for each edge, and select the one that minimizes the maximal distance to all vertices.
+The algorithm for finding a local center can be found on slide 20.
+
+We can prove that for a local center \(x_e\) on edge \(e\) between \(p\) and \(q\) with edge weight \(c(p,q)\):
+
+\[m(x_e) \ge \frac{m(p) + m(q) - c(p,q)}{2}\]
+
+Let \(d(x,v)\) be a distance metric from a point \(x\) to a vertex \(v\) such that:
+
+\[
+\begin{aligned}
+d(x,p) &= x \\
+d(x,q) &= c(p,q) - x \\
+m(p) &\le m(x) + x \\
+m(q) &\le m(x) + c(p,q) - x \\
+m(q) + m(p) &\le 2 m(x) + x + c(p,q) - x
+\end{aligned}
+\]
+
+We can use this theorem to reduce the number of edges that need to be considered for local centers.
+
+\paragraph{General case}
+
+Given a undirected network \(G\) with \(n\) vertices and a positive integer \(k\).
+Let \(d(X_k, n)\) be the minimum distance between any one of the points in \(X_k\) and the node \(v \in G\).
+The \textsc{k-center} problem is to find \(k\) distinct points on the graph \(X_k=\{x_1,\ldots,x_k\}\) that minimizes \(\max_{v\in V} d(X_k, v)\).
+
+If \(k\) is constant w.r.t. \(n\), then we have \(O(n^k)\) possible vertex centers.
+We can evaluate each of these possible vertex centers in turn (in polynomial time).
+
+If \(k\) is a function of \(n\) problem is \(\NPclass\)-hard.
+The proof follows by reduction from \textsc{Dominating Set}, by noting that a dominating set of size \(k\) is a \(k\)-center with objective value of 1.
+
+\paragraph{2-approximation}
+
+\marginpar{An example was given for this was given on the board, but elided here because I feel it's trivial}
+The following is a 2-approximation that relaxes the objective function\footnote{there are variants that relax the budget of \(k\)} for instances that obey the triangle inequality.
+Start by choosing the first center arbitrarily, and at every step, choose the vertex that is furthest from the current centers to become a center.
+Continue until \(k\) centers have been chosen.
+
+% Execution of this forms Voronoi cells across the network
+
+To prove approximation, first note that the sequence of distances from a new chosen center to the closest existing center is non-increasing.
+Consider the point that is furthest from the \(k\) chosen centers.
+We need to show that this point is at most \(2\cdot \text{OPT}\) from the closest center.
+Assume by contradiction that it is not.
+This means that distances between all centers are more than \(2 \cdot \text{OPT}\).
+We have \(k+1\) points with distances greater than \(2 \cdot \text{OPT}\) between every pair of centers and this point.
+Each point has a center of the optimal solution with less than OPT distance.
+There must exist a pair of points with the same center in the optimal solution (by pigeonhole).
+The distance between them is at most \(2 \cdot \text{OPT}\).
+This contradicts our assumption, and therefore our algorithm is a 2-approximation.
+
+\paragraph{Approximation hardness}
+
+If \(\Pclass \ne \NPclass\), then there is no approximation algorithm for the \textsc{k-center} problem that gives a \((2-\varepsilon)\)-approximation for any \(\varepsilon > 0\).
+
+The proof sketch follows by reduction from \textsc{Dominating Set}.
+Let \(G=(V,E); k\) be an instance of \textsc{Dominating Set}.
+Construct a complete graph \(G'=(V, E' = V \times V)\) such that \(d(u,v) = 1\text{ if \((u,v) \in E\) else }2\)
+Note that \(G'\) satisfies the triangle inequality.
+Run such an algorithm and consider the objective value \(d\) of the selected set.
+If \(d \le 1\), then \(G\) has a DS of size \(k\).
+If \(d \ge 2\), then \(G\) does not have a DS of size \(k\).
+
+The rationale for this is that the approximation must select a set with \(d < 2\), and it will use primarily edges that were in the original graph.
+
+\subsubsection{k-median}
+
+Minimize the sum of distances between customers and the closest facility.
+
+Given an undirected network \(G\) with \(n\) vertices with vertex weights \(h_j\), and a positive integer \(k\).
+Let \(d(X_k,j)\) be the minimum distance between any one of the points \(x_1, \ldots, x_k\) and the node \(j\).
+An optimal solution to \textsc{k-median} minimizes:
+
+\[J(X_k) = \sum_{i=1}^n h_j d(X_k, i)\]
+
+I wasn't able to keep up with the rest of the lecture.
+
+\section{Next week}
+
+We will continue facility location next week.
+
+\end{document}
