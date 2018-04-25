@@ -1,0 +1,229 @@
+\documentclass{idc_msc}
+
+\title{Information Retrieval and Web Search\\\large Lecture 04}
+\date{2018-04-25 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Inbal Budowski-Tal\\Typeset by Steven Karas}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the lecture for the course Information Retrieval and Web Search, taught by Dr. Inbal Budowski-Tal at IDC Herzliyah in the spring semester of 2017/2018.
+Sections may be based on the lecture slides written by Dr. Inbal Budowski-Tal.
+
+\paragraph{Agenda}
+
+\begin{itemize}
+  \item Context-sensitive correction
+  \item Soundex
+\end{itemize}
+
+\nocite{manning2008introduction}
+
+\paragraph{Note regarding Levenshtein Distance}
+
+This is an important dynamic programming algorithm and we should understand the algorithm very well.
+It may feature prominently either on a future homework or the exam.
+
+% NOTE: I got lazy and copypasted most of my notes from the previous lecture.
+
+\section{Dictionaries}
+
+There are several approaches. The three basic ones are hash †ables, sorted fixed-width entries, and trees (binary or B-variants).
+
+\section{Wildcard Queries}
+
+Wildcard queries are a form of tolerant retrieval.
+There are three standard forms of wildcard queries: prefix, infix, and suffix.
+Infix wildcards can either be performed as the intersection of prefix and suffix queries, or use a permuterm index.
+
+\subsection{Permuterm Index}
+
+To construct a permuterm index, generate all rotations of a term, using a symbol outside the term alphabet to denote the end of the word:
+
+\texttt{HELLO \(\to\) hello\$ ello\$h llo\$he lo\$hel o\$hell}
+
+\begin{itemize}
+  \item when searching for \texttt{X}, query for \texttt{X\$}
+  \item when searching for \texttt{X*}, query for \texttt{X*\$}
+  \item when searching for \texttt{*X}, query for \texttt{X\$*}
+  \item when searching for \texttt{*X*}, query for \texttt{X*}
+  \item when searching for \texttt{X*Y}, query for \texttt{Y\$X*}
+\end{itemize}
+
+\subsection{k-gram indexes}
+
+A \(k\)-gram index is more space efficient than an equivalent permuterm index, but requires some extra processing to query.
+To construct the index, we enumerate all the \(k\)-grams consisting of all subsequences of length \(k\) that occur in a term (including the inserted boundary markers)
+This index maps from the \(k\)-grams to a list of terms that contain the subsequence.
+
+\texttt{April is the cruelest month \(\to\) \$a ap pr ri il l\$ \$i is s\$ ...}
+
+Wildcard queries first generate a list of terms, which need to be filtered for false positives (e.g. \texttt{mon*} will query for \texttt{\$m, mo, on}, which may produce \texttt{moon}).
+Terms are then queried against the term-postings index.
+
+\section{Spelling correction}
+
+% To power spelling correction, this is a good essay on the topic: http://norvig.com/spell-correct.html
+
+Spelling correction has two main applications: correcting documents being indexed, and correcting user queries.
+An isolated word approach considers the spelling of each word independently of the rest of the tokens.
+A context-sensitive approach will consider nearby tokens as well, and may correct mistakes such as \texttt{the asteroid fell form the sky}.
+The reason we want to have spelling correction is usually due to OCR'd documents, which may have transcription errors.
+
+Corrections can be sourced from a canonical dictionary, which may be too general purpose, or drawn from the term vocabulary itself (appropriately weighted).
+The candidate correction is typically defined as the term with the shortest edit distance from the misspelled token.
+
+\subsection{Edit distance}
+
+The \textbf{edit distance} between strings \(s_1,\,s_2\) is the minimum number of operations to change \(s_1\) into \(s_2\).
+The specific operations that are considered is a detail of the specific distance metric.
+
+More advanced approaches will weigh some operations as they may have been more likely.
+
+\subsubsection{Levenshtein Distance}
+
+Introduced by Levenshtein in 1966\cite{levenshtein1966binary}.
+For the Levenshtein distance metric, the operations considered are insert, delete, and replace.
+There is an efficient dynamic programming algorithm that produces not only the distance, but also a possible sequence of operations.
+
+A weighted approach for some replacements is a good idea for some applications where the distribution of errors is known.
+For example, reducing the distance between O and C for OCR'd text.
+
+\subsection{k-gram spelling correction}
+
+We can enumerate all the \(k\)-grams in the misspelled term, and threshold all resulting terms by the number of matching \(k\)-grams.
+The resulting list can then be sorted by edit distance and the lowest distance term returned as the correction.
+
+\subsection{Context sensitive correction}
+
+In this case, take the \(k\)-word queries, construct alternative queries based upon \(k\)-gram isolated term corrections and suggest the subqueries that have the most hits.
+
+% We skipped this again this time because she said Soundex is more important.
+
+\section{Soundex}
+
+Soundex is an approach for finding terms based on phonetic distance (as opposed to orthographic distance).
+The approach is rather simple: map each token into a 4-character reduced form, and construct an index over this reduced form.
+
+\paragraph{Algorithm}
+
+\begin{enumerate}
+  \item Retain the first letter
+  \item Convert all of the following to 0: A, E, I, O, U, H, W, Y
+  \item Map the following letters to digits as follows:
+  \begin{itemize}
+    \item B, F, P, V \(\to\) 1
+    \item C, G, J, K, Q, S, X, Z \(\to\) 2
+    \item D, T \(\to\) 3
+    \item L \(\to\) 4
+    \item M, N \(\to\) 5
+    \item R \(\to\) 6
+  \end{itemize}
+  \item Compress all consecutive identical digits
+  \item Remove all zeros, pad the tail with 3 zeros
+  \item Return the first 4 characters
+\end{enumerate}
+
+\paragraph{Disadvantages}
+
+It's not very useful for information retrieval, but is a good approach and can be adjusted/expanded for specific applications.
+Zobel and Dart in 1996 suggest some adjustment techniques for IR applications.
+
+\section{Index Construction}
+
+Many of the design considerations for IR systems are based upon hardware constraints.
+Disk access is typically more than an order of magnitude slower than memory access.
+Disk seek (for magnetic storage) is effectively idle time.
+Transferring one large sequential chunk is typically faster than many small chunks.
+Disk I/O is typically block-based, with typical block sizes ranging from 4KB to 8MB.
+IR systems typically have large memory spaces, and an order of magnitude more attached storage.
+
+\subsection{RCV1 dataset}
+
+Shakespeare's collected works are not sufficiently large to demonstrate many of the points in the course.
+As an example corpus, we will use the RCV1 dataset, which is a collection of all English newswire articles from 1995 and 1996.
+
+\begin{description}
+  \item[Documents] \(n = 800000\)
+  \item[Tokens per document] \(L = 200\)
+  \item[Terms] \(M = 400000\)
+  \item[bytes per token] including spaces, punctuation: 6
+  \item[bytes per token] after preprocessing: 4
+  \item[non-positional postings] \(T = 10000000\)
+  \item[Average term frequency] 400
+  \item[positional postings] 160mm
+\end{description}
+
+\subsection{Sort-based Index Construction}
+
+As we build our index, we parse documents one at a time.
+The postings for a term are incomplete until the end.
+If we can fit all the postings in memory, then construction is trivial (in-memory sort).
+Even for a corpus such as RCV1, modern machines can easily fit the entire postings list in memory.
+However, modern collections are even larger and do not readily fit on COTS systems.
+
+\subsubsection{Block Sort-Based Indexing}
+
+Each posting takes 12 bytes: 4 - termID, 4 - docID, 4 - frequency.
+We can easily fit a few blocks in memory at a time, but we have many blocks.
+So we sort each block in memory, and then merge blocks and write the result to disk.
+
+The two popular approaches to merging blocks are \(k\)-way merge, and \(\log\)-merge\footnote{Both of these have more details in the course book}.
+
+\begin{lstlisting}[title={BSBI}]
+n = 0
+until all documents have been processed:
+  n += 1
+  block = ParseNextBlock()
+  BSBI-Invert(block)
+  WriteBlockToDisk(block, $f_n$)
+
+MergeBlocks($f_1$, $\ldots$, $f_n$; $f_{\text{merged}}$)
+\end{lstlisting}
+
+Choosing the block size is very important.
+
+\subsection{Distributed Indexing}
+
+Large IR systems use COTS hardware distributed across multiple datacenters and regions over the world.
+However, such systems can have individual machines fail or slow down.
+Typical approaches will assign a coordinator that will assign tasks to idle machines from a pool.
+
+A diagram describing an example data flow can be found on slide 26.
+In this diagram, documents are split into chunks called splits that are handed to parser tasks that write postings to buckets called partitions (for example, writing all terms sorted lexicographically a-f into the first partition, etc.).
+An inverter task takes a partition, sorts it, and writes it to the postings lists.
+
+MapReduce is a framework for writing/describing such distributed systems without needing to handle a lot of the plumbing.
+
+\subsection{Dynamic Indexing}
+
+For practical IR systems, the collections tend to change as documents are added, removed, and modified.
+The simplest approach is to maintain a large index on disk, and keep a smaller auxiliary index in memory for new documents.
+Queries are executed across both, and results are merged.
+Deletions are handled by keeping an invalidation bit-vector for all documents, and filtering results by this bit-vector.
+The full index can be rebuilt periodically to prevent unsustainable growth of the auxiliary index.
+
+However, in practice this approach requires frequent merges, and negatively impacts search performance during the merge.
+There are some strategies to mitigate this, such as storing each posting list as a separate append-only file.
+However, even these have limitations and there are better approaches.
+
+\subsubsection{Logarithmic Merge}
+
+Log merge amortizes the cost of merging indexes over time.
+By maintaining a series of indexes, each twice as large as the previous.
+Keep the smallest one in memory, and maintain the rest on disk.
+As the index in memory grows, write it to disk, repeatedly merging existing indexes into the next largest and writing the result to disk.
+
+The exact algorithm can be found on slides 37.
+
+An important thing to note is that to process a query, all indexes must be searched and results merged.
+There are \(O(\log T)\) indexes.
+
+\section{Next Session}
+
+\end{document}
