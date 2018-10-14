@@ -1,0 +1,192 @@
+\documentclass{idc_msc}
+
+\title{Seminar on Logic Mathematics and Philosophy \\\large Lecture 01}
+\date{2018-10-14 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Udi Boker\\Typeset by Steven Karas}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\nocite{benacerraf1983philosophy}
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the seminars on Logic, Mathematics, and Philosophy; led by Dr. Udi Boker at IDC Herzliyah in the fall semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Udi Boker.
+
+\section{Course Admin}
+
+As a seminar, the first two lectures will be covered by Dr. Boker.
+The remaining lectures will be led by pairs or triplets of students.
+There are a list of suggested topics but other proposals are welcome.
+
+Attendance is mandatory.
+If you can't make it to a lecture, points will be taken off as per \(2^{n+1}\) where n is the number of unexcused absences.
+80\% of the grade is based on the lecture.
+20\% of the grade is on homework.
+
+\subsection{Lectures}
+
+Each lecture is prepared by students, with two meetings with Dr. Boker two and one week before the lecture date.
+As part of building the lecture, a homework assignment must also be prepared.
+
+\section{History of Mathematics}
+
+\subsection{Classical Greece}
+
+Pythagoras (circa 550 BCE) was a member of a cult that believed natural events were built out of ratios of natural numbers.
+Contemporaneously, there were natural numbers and simple arithmetic.
+Pythagoras proved that \(a^2 + b^2 = c^2\) for right triangles.
+This was a problem, because it implied the existence of irrational numbers, and that arithmetic is not a good model of mathematics.
+
+Zeno (circa 450 BCE) proposed many paradoxes.
+He posed the following as his "classic" one: if a turtle runs half as fast as a rabbit, but starts a meter ahead, at what distance does the rabbit pass the turtle?
+This was presented as an infinite sum of fractions.
+
+Plato\footnote{Whitehead said that all of modern western philosophy is just margin notes for classical philosophy} (circa 400 BCE) was the head of the eponymous Platonic school of philosophy.
+Part of his philosophy was that we live in many worlds some of which are ideal worlds, including among them mathematics.
+
+Aristotle was a student of Plato and advisor to Alexander the Great.
+His primary contribution was to create a formal system of logic.
+His approach was that the ideal worlds are based on the material world we experience.
+
+Euclid (circa 300 BCE) was a mathematician who wrote "Elements", which established the basis of proven mathematics and geometry.
+He proved that there are a potentially infinite\footnote{potential infinity just means that the number of something is unbound} number of prime numbers.
+
+Diophantus (circa 200 CE) laid down the basis of algebra, which extends basic number theory to variables and the generic form of arithmetic.
+
+There are many more major players in this period, but we have limited time and will focus on just a few key players.
+
+\subsection{Middle Ages}
+
+Brahmagupta (7th century) in India introduced the concept of zero and decimal numeric representation\footnote{both of these were invented by others independently, but we'll focus on him for the purpose of the course}.
+
+Muhammad ibn Musa al-Khwarizmi (9th century) in Baghdad documented algebra which is named after him.
+
+Fibonacci (12th century) heavy pushed the concept of zero, positional notation, and algebra to the Europeans.
+
+In this period, real numbers were used, but not formally or in an organized manner.
+
+\subsection{17th Century}
+
+The rationalist school of philosophy attempted to look at everything in a mathematical way.
+
+The empirical school looked at the world as something that is sensed, and experienced.
+They rejected the concept of mathematical proof and preferred experimental confirmation.
+Knowledge is a posteriori, not a priori.
+
+Galileo was an empiricist.
+
+Renee Descartes is often treated as a rationalist, but tried to reconcile the two schools.
+He combined geometry and algebra, and got analytical geometry.
+He gave the name of real numbers, but did not give a formal definition.
+
+Isaac Newton invented calculus.
+
+Gottfried Leibniz also invented calculus independently.
+
+In this period, they used infinitesimal numbers to solve formulas, which were then thrown out to get an exact solution.
+
+\subsection{18th century}
+
+George Berkeley had a big problem with infinitesimal numbers, and did not like the application of potential infinity.
+
+Immanuel Kant mixed the two schools of rationalism and empiricism.
+He claimed that there were analytical (a priori) statements - those statements which do not require experimental proof.
+He also presented synthetic (a posteriori) statements - those statements which add knowledge.
+He presented mathematical theorems as synthetic a priori statements in that we do not need to empirically prove them, but they are not analytical.
+
+A priori truths are derived from the truth of their structure.
+Synthetic statements are those that give knowledge.
+A priori synthetic statements are those that do not require experimentation to prove their truth. E.g. \(5 + 7 = 12\).
+A posteriori synthetic statements are those that do require experimentation.
+
+Baruch Spinoza was a rationalist who in his "Ethics" attempted to apply mathematical logic to derive philosophical truth.
+
+Pierre de Fermat was another important figure in this period.
+
+\subsection{Early 19th Century}
+
+Augustin-Louis Cauchy dealt with infinitesimal numbers and defined calculus in terms of limits.
+
+Karl Weierstrass also defined calculus in terms of limits.
+
+The majority of mathematical work up until this period was based in euclidean geometry.
+
+\subsection{Mid 19th Century}
+
+George Boole invented the notation for symbolic boolean logic.
+
+Augustus De Morgan also worked on symbolic logic.
+
+Carl Friedrich Gauss was also a major player in this period.
+
+Nikolai Lobachevsky introduced non-euclidean geometries.
+
+Bernhard Riemann also dealt with non-euclidean geometries.
+He rejected the parallel line axiom and showed that different geometries are possible and useful, such as the surface of a sphere.
+
+This was a major development because they were able to derive much of modern geometry and interesting proofs without using the axiom of parallel lines.
+This was a big deal because there were not many attempts to derive proofs without using all the axioms.
+It effectively caused doubt in the a posteriori truth of euclidean geometry.
+
+\subsection{Late 19th Century}
+
+Georg Cantor developed naive set theory with the help of Richard Dedekind.
+He was able to prove the existence of different types of infinity, and that the real numbers are "bigger" than the natural numbers.
+His famous theorem was that the cardinality of subsets of a set is greater than the cardinality of a set.
+
+Leopold Kronecker had harsh criticism of Cantor regarding the use of actual infinity, as it was "divine".
+
+Richard Dedekind formally defined the real numbers using an infinite set and collaborated with Cantor on the initial development of set theory.
+
+David Hilbert proved the consistency of euclidean geometry using the real number model.
+This was a big deal because he formally proved the 5 axioms are consistent.
+He used a formalist approach that focused on consistent axioms.
+He believed in finitism, which rejects the existence of nonfinite objects such as concrete infinite sets.
+He spent a lot of time attempting to use Peano Arithmetic to imply the correctness/consistency of higher-order logics.
+
+Friedrich Ludwig Gottlob Frege built first order logic and founded the philosophical school of logicism.
+This school was at odds with Kant, as they claimed that mathematics is analytical.
+
+Giuseppe Peano invented a good notation for first order logic.
+He also extended it to what is called "Peano Arithmetic" which was a formal basis for arithmetic and algebra.
+
+% Henri Poincar\'e
+
+\subsection{20th Century}
+
+Bertrand Russell sent his paradox to Frege, in that a set of all sets that do not belong to themselves implies that it includes itself iff it does not:
+
+Let \(A\) be a set.
+Define \(A \notin A\) as a property.
+Let \(S=\{A \mid A \notin A\}\).
+\(S \in S\)?
+
+If \(S \in S\), then \(S \notin S\), by definition.
+If \(S \notin S\), then \(S \in S\), by definition.
+
+This made a lot of people very angry, because it showed that naive set theory has contradictions.
+Russell himself went towards Type Theory to find a solution.
+
+Alfred Whitehead collaborated with Russell on "Principia Mathematica", which derived all mathematics from type theory.
+The notation was overly complex and while not directly used did inspire many other approaches.
+
+Ernst Zermelo and Avraham Fraenkel built axiomatic (ZFC) set theory, which explicitly disallowed Russell's paradox and is generally regarded as a good basis for modern mathematics.
+
+Luitzen Egbertus Jan Brouwer was the founder of mathematical intuitionism which disallows contradictions and allows abstaining, constructing mathematics from positive proofs only.
+
+Kurt G\"odel proved that any mathematical system is either inconsistent or incomplete.
+He also showed that the continuum hypothesis cannot be implied from ZFC.
+
+Paul Cohen was a formalist who showed\cite{cohen1963independence} that the continuum hypothesis is independent from ZFC.
+
+Predicativism is the school of philosophy that accepts the natural numbers but disallows self-reference.
+
+Alan Turing founded the field of Computer Science.
+Alonzo Church and Turing proved that all computational models are equivalent to Turing machines.
+
+\end{document}
