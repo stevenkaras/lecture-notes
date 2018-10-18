@@ -1,0 +1,133 @@
+\documentclass{idc_msc}
+
+\title{Advanced Topics in IP Networks \\\large Lecture 01}
+\date{2018-10-14 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Anat Bremler-Barr\\Typeset by Steven Karas}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Advanced Topics in IP Networks, taught by Dr. Anat Bremler-Barr at IDC Herzliyah in the fall semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Anat Bremler-Barr.
+
+\nocite{Varghese:2004:NAI:1203994}
+\nocite{Crovella:2006:IMI:1196480}
+\nocite{Kurose:2002:CNT:549735}
+
+\section{Course Admin}
+
+25\% of the grade will be based on 5-7 homeworks.
+Homeworks will be submitted individually, and will be a mix of theoretical and practical exercises.
+
+75\% of the grade will be based on the final project.
+Projects will be done in groups of 3, including a presentation.
+
+\section{Agenda}
+
+\begin{itemize}
+  \item Internet Topology
+  \item Packet classification and lookup, Forwarding
+  \item Routing, BGP
+  \item Scheduling and Queueing
+  \item Internet Hazards (worms, ddos, bgp hijack)
+  \item Measurements
+  \item Network Function Virtualization
+  \item Software Defined Networking
+  \item Network Algorithmics
+  \item Internet of Things
+\end{itemize}
+
+\subsection{Relevant Research}
+
+The two main publishers of relevant papers are the IEEE and the ACM.
+The most relevant journals are Transaction on Networking (ToN), JSAC, and Computer Networks.
+The main conferences are Sigcomm, ANCS, NSDI, Infocom, IMC, Sigmetrics, ICNP, Usenix, DSN.
+
+The process for entering the field is to be aware of the best conferences and the people involved.
+Papers are accepted to conferences around 1:5 for the easy conferences and 1:10 for the competitive conferences.
+Papers are usually blindly reviewed, and there is a general trend towards double blind review.
+Papers that were published make the best masters theses.
+
+In computer science, the papers, the slides, and the audio or video of the conference are all available on the homepage of the author.
+
+\subsection{The Road to Research}
+
+There are many roads to taking part of active research in the field.
+Active research is typically undertaken at either universities, national laboratories, or think tanks.
+
+A typical academic career will flow from a masters to a doctorate, and then a postdoc or two.
+Choosing a project or thesis is typically much harder and riskier than taking extra courses.
+Even if we choose to only take courses, we may be able to be accepted into a doctoral program, but it will require doing more research.
+
+Slides 54 to 59 explain a recommended framework for reading academic papers.
+
+\subsection{Standardization}
+
+Standards in the field are published by a few different groups.
+We will focus on those published by the IETF and the RFC.
+
+\section{Introduction}
+
+The Internet is a globally connected network.
+Historically it was a research experiment that escaped from the lab, but has grown by a lot since then.
+We expect that it will grow significantly over the next decades, mostly by extending it to more and more devices (IoT).
+
+It's important to remember that the internet is a man made object.
+We can describe networking as a bunch of protocols, packet formats, boxes, tools, application domain, or a discipline.
+It covers the application of many different theoretical fields and system designs.
+All that having been said, networking has many real world effects and impact.
+Networks in particular make up some of the most heavily cited papers.
+
+% I wasn't listening for 5 minutes
+
+\subsection{IP Networks}
+
+David D. Clark was the original Chief Protocol Architect of the Internet from 1981.
+In \href{http://ccr.sigcomm.org/archive/1995/jan95/ccr-9501-clark.pdf}{1988}, he wrote about the original design philosophy that was used:
+
+\begin{enumerate}
+  \item An effective technique for multiplexed utilization of existing interconnected networks
+  \item Internet communication must continue despite loss of networks or gateways.
+  \item ...
+\end{enumerate}
+
+There are two basic approaches to routing communication: circuit switching and packet switching.
+Circuit switching is far less flexible than packet switching, so most networks use packet switching.
+Packets handle multiplexing, bursty traffic, lossy and corrupt links, and can work across multiple link types (wireless, avian carrier).
+
+However, this is problematic for applications, so we have an intermediary transport layer.
+We typically refer to a 5 layer model:
+
+\begin{enumerate}
+  \item Physical - usually not drawn in figures; used to actually transmit data
+  \item Link - Ethernet, SONET, etc; used to send a packet to the next device
+  \item Network - IPv4, IPv6; used to determine which link to send the packet to next
+  \item Transport - TCP, UDP, etc; used to provide resiliency, error correction, etc
+  \item Application - HTTP, etc; the actual application protocol
+\end{enumerate}
+
+We typically refer to this as the Hourglass model, because the network layer is the slowest to change and the hardest, but also provides the interoperability which is why it's referred to as the "Narrow Waist".
+
+\subsection{Network Topology}
+
+Modern networks break the network into the data plane and the control plane.
+The data plane handles actual packet forwarding and routing.
+The control plane handles events such as tracking changes it the network topology, computing paths throughout the network, or reserving resources along a network path.
+This split was motivated by the need for more and more performance, both in terms of latency and throughput.
+
+The role of the control plane is to ensure the smooth operation of the network.
+It's responsible for ensuring that traffic reaches the correct destination over uncongested paths, discarding excess or unwanted traffic, and ensure that network resources are allocated efficiently.
+
+In a traditional network, the data and control plane are as above, but the management layer of allocating resources happened on human time scales. Often, the control plane would handle management features, but through distributed algorithms that would not find optimal solutions.
+For software defined networking, we consolidated the control and management planes into a central location that can intelligently allocate resources.
+
+At some point, we realized that we needed extra network appliances for security, compliance, and performance.
+This was solved by adding middleboxes, each of which solved a very specific need.
+At some point around 2012, this multitude of middleboxes was replaced by network function virtualization.
+
+\end{document}
