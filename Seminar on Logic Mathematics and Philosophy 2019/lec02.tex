@@ -1,0 +1,221 @@
+\documentclass{idc_msc}
+
+\title{Seminar on Logic Mathematics and Philosophy \\\large Lecture 02}
+\date{2018-10-21 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Udi Boker\\Typeset by Steven Karas}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\nocite{benacerraf1983philosophy}
+
+\paragraph{Disclaimer}
+
+These lecture notes are based on the seminars on Logic, Mathematics, and Philosophy; led by Dr. Udi Boker at IDC Herzliyah in the fall semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Udi Boker.
+
+NOTE: I will try to upload a revised version of these notes with the missing parts filled in.
+
+\section{Course Admin}
+
+Nothing new, just a reminder regarding the 
+
+\section{Formal Logics}
+
+Formal logic deals with inference of formal concepts, and formal concepts only.
+
+Assumptions are given, and listed.
+For example:
+\[ \alpha,\; \alpha \to \beta\]
+
+We then have a claim, for example: \(\beta\).
+
+From this, the proof follows:
+
+\[\alpha, \; \alpha \to \beta \models \beta\]
+
+A formal logic system is a combination of syntax, semantics, and optionally a proof system.
+Ideally, the consequence relation of the proof system matches the semantics of the formal logic.
+
+\clearpage
+\section{First Order Logic}
+
+Frege developed first order logic during the 19th century, and it was widely adopted by the 20th century.
+First order logic is also called predicate calculus or predicate logic.
+\marginpar{Steven: \href{https://teorth.github.io/QED/}{QED}}
+
+\subsection{Syntax}
+
+Variables are denoted as \(x_0,\; x_1,\; x_2,\; \ldots\).
+
+Relations are denoted as \(\lnot,\; \lor,\; \land,\; \to\).
+
+Quantifiers are \(\forall\) and \(\exists\), which must be followed by a variable.
+
+% I missed the rest of the notation from slide 7?, and he didn't upload slides before the lecture started
+
+Constants are also allowed, for example: \(0,\; \emptyset,\; \mathrm{David}\).
+
+Functions are denoted with their arity: \(+,\; \lfloor \rfloor,\; \cap,\; \mathrm{Father}\).
+
+Finally, relations are also allowed: \(\in,\; \subset,\; \mathrm{contains}\).
+
+For first order logic, we allow nouns and expressions.
+Nouns evaluate to an element of the universe, and formulas evaluate to some true/false value.
+Functions operate on nouns, and evaluate to a noun.
+Relations operate on nouns, and evaluate as a formula.
+
+Within a formula, we refer to variables as free or bound.
+Bound variables are those which are within a quantifier.
+Note that a quantifier may only cover part of a formula, not all of it.
+Variables within a noun are always free.
+
+\paragraph{Goldbach Conjecture}
+
+The Goldbach conjecture has gone unproven for several hundred years.
+The conjecture states that every even number is the sum of two prime numbers.
+Formally:
+
+\[
+\begin{aligned}
+  \mathrm{Even}(x) \to& \exists y\; x = y + y \\
+  \forall x \,\mathrm{Even}(x) \to& \exists y \exists z \, (x = y + z \land \mathrm{Prime}(y) \land \mathrm{Prime}(z)) \\
+\end{aligned}
+\]
+
+A proposition is a formula that has no free variables.
+Intuitively, a proposition always evaluates to either true or false.
+Whereas a generic formula may depend on the values of the free variables.
+
+\subsection{Axiomatic Theories}
+
+A theory is defined as a collection of propositions that are called axioms, which we assume to evaluate to true.
+It's widely considered as good if we can reduce the number of axioms we use for a theory.
+
+Peano Arithmetic uses a dictionary of \(\Sigma=\{0, s, + , \cdot, <\}\) with ten axioms:
+
+\begin{enumerate}
+  \item There is no number smaller than 0: \(\forall x\, (\lnot (x < 0))\)
+  \item There is no number whose successor is 0: \(\forall x\, (\lnot(s(x) = 0))\)
+  \item The successor function is 1-1: \(\forall x \forall y\, \left(s(x)=s(y) \to (x=y)\right)\)
+  \item 0 is neutral w.r.t. addition: \(\forall x \, (x + 0 = x)\)
+  \item Multiplication by 0 is 0: \(\forall x \, (x \cdot 0 = 0)\)
+  \item Addition by the successor: \(\forall x\forall y\, (x + s(y) = s(x + y))\)
+  \item Multiplication by the successor
+  \item Ordering by the successor
+  \item Ordering is complete
+  \item Induction: \((\alpha(0) \land \forall x\; (\alpha(x) \to \alpha\left(s(x)\right)) \to \forall x\; \alpha(x)\)
+\end{enumerate}
+
+% I missed a few of the formal axioms due to lack of time
+
+\subsection{Structures}
+
+For a logic system, we define a structure:
+
+\begin{itemize}
+  \item A nonempty set of elements called the domain \(D^M\)
+  \item Constants are interpreted as a specific element \(c^M\)
+  \item A n-ary function \(f\) is interpreted as a complete function \(f^M\) which takes \(n\) elements
+  \item ...
+  % yet again, didn't get them all
+\end{itemize}
+
+Propositions that evaluate to true for a given structure are said to be satisfied, or that the structure models them.
+
+A structure models a theory if it satisfies all the axioms for a theory.
+
+A theory is called a tautology if it holds for all structures.
+A theory is called satisfiable if there is a structure for which it holds.
+A theory is called a contradiction if it does not hold for all structures.
+
+% many examples were given
+
+\subsection{Semantic Consequence}
+
+Let \(\alpha\) be a proposition and \(S\) be a set of propositions.
+\(\alpha\) is semantically consequential, denoted as \(S \models \alpha\) if all models of \(S\) also model \(\alpha\).
+
+Let \(\alpha\) and \(\beta\) be formulas. We say that they are semantically equivalent, denoted as \(\alpha \equiv \beta\) if \(\{\alpha\} \models \beta\) and \(\{\beta\} \models \alpha\).
+
+Note that the following are tautologies:
+
+\begin{itemize}
+  \item \(\alpha \to \beta \equiv \lnot \alpha \lor \beta\)
+  \item \(\lnot(\alpha \lor \beta) \equiv \lnot \alpha \land \lnot \beta\)
+  \item ...
+\end{itemize}
+
+\subsection{Proof system}
+
+A proof system is composed of logical axioms and inference rules.
+If a proposition is inferred by syntax, we denote this as \(S \vdash \alpha\).
+A proof system is called sound if for any claim and assumptions \(S \vdash \alpha\) implies \(S \models \alpha\).
+A proof system is called complete if for any claim and assumptions \(S \models \alpha\) implies \(S \vdash \alpha\).
+
+There are many different proof systems; we will see a Hilbert-style proof today.
+
+\subsubsection{Hilbert-style proofs}
+
+A formula \(\alpha\) is inferred from the set of formulas \(S\), denoted as \(S \vdash \alpha\) if there is a finite sequence of formulas, such that the sequence concludes with \(\alpha\) wherein each formula in this sequence is either a logical axiom, belongs to \(S\) as an assumption, or is derived from prior formulas using inference rules.
+
+\subsection{G\"odel's Completeness Theorem}
+
+G\"odel proved in his doctoral dissertation from 1929 that there exists a complete and sound proof system for First Order Logic.
+
+% He showed an 8-axiom proof system with modus ponens
+
+% He them showed a trivial proof using this proof system
+
+\subsection{Consistency}
+
+A set of propositions is consistent if it not possible to infer a contradiction from them.
+This is a syntactic concept, whereas satisfaction is a semantic concept.
+If a proof system is sound and complete, then a consistent set of propositions is a satisfiable theory.
+
+For an unsatisfiable set of propositions \(S\), there are no structures that satisfy it.
+As such, all the structures that satisfy \(S\) also satisfy \(\alpha\) and its converse \(\lnot \alpha\) in a degenerate way.
+Therefore, \(S\) is inconsistent.
+
+\subsection{Definability}
+
+We say that a theory defines a specific structure if it is the only structure that satisfies all the propositions of that theory.
+
+We call structures isomorphic if they are identical short of naming.
+Semi-formally, we call structures isomorphic if there is a bijective (1-1 and onto) mapping between them that preserves the meaning of the structure.
+This means that the mapping must preserve the types of the elements.
+
+Formally, let \(\Sigma\) be the dictionary of the structures \(M_1\) and \(M_2\) with respective domains \(D_1\) and \(D_2\).
+We say that \(M_1\) and \(M_2\) are isomorphic iff there is a mapping \(f : D_1 \to D_2\)...
+
+% I missed the rest of the formal proof
+
+Formally, we say that the structure \(M\) over the dictionary \(\Sigma\) is definable in first order logic if there is a theory \(T\) from first order logic over \(\Sigma\) such that \(M\) is the only structure up to isomorphism that satisfies \(T\).
+
+\subsubsection{Compactness of FOL}
+
+A set of formulas in FOL are satisfiable iff every finite subset is satisfiable.
+As a restricted case of this, we will show this where the formulas are propositions, specifically that a theory \(T\) has a model iff...
+
+% he's moving way too fast to keep track
+
+Assume that \(T\) is not satisfiable and we will show that there is a finite subset that is not satisfiable.
+Recall that we showed the equivalence of consistency and satisfiability.
+Therefore, \(T\) is not consistent, which means there is a proof system that can conclude a contradiction.
+This means that there exists some proposition for which \(T \vdash \alpha\) and \(T \vdash \lnot \alpha\).
+Consider the finite set of propositions that appear in the Hilbert proof of \(T \vdash \alpha\).
+Consider the propositions from this proof that are from \(T\) and denote them as \(T'\), which is a finite subset of \(T\).
+Similarly, do the same for \(T \vdash \lnot \alpha\) and denote \(T''\).
+\(T' \cup T''\) is finite, is a subset of \(T\), and is contradictory.
+
+We will see in two weeks that Peano arithmetic does not define the natural numbers.
+Worse, we will show that no First Order Logic can define the natural numbers.
+
+\subsubsection{L\"owenheim–Skolem Theorem}
+
+If a theory in First Order Logic has an infinite model (say, with an infinite domain), then it has a model for all infinite cardinalities.
+
+\end{document}
