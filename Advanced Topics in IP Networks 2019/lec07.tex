@@ -1,0 +1,110 @@
+\documentclass{idc_msc}
+
+\title{Advanced Topics in IP Networks \\\large Lecture 07}
+\date{2018-11-29 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Yuval Shavitt and Dr. Anat Bremler-Barr\\Typeset by Steven Karas}
+
+\AtEndDocument{\bibliographystyle{plain}\bibliography{../biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Advanced Topics in IP Networks, taught by Dr. Anat Bremler-Barr at IDC Herzliyah in the fall semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Anat Bremler-Barr.
+
+\nocite{Varghese:2004:NAI:1203994}
+\nocite{Crovella:2006:IMI:1196480}
+\nocite{Kurose:2002:CNT:549735}
+
+\section{Agenda}
+
+Today we will have a guest lecture by Dr. Yuval Shavitt, professor of Electrical Engineering at Tel Aviv University, and CTO of BGProtect. He will present on the topic of IP hijacking.
+
+\section{IP Hijacking}
+
+Some of the reasons for hijacking IPs:
+
+\begin{itemize}
+  \item Man in the middle
+  \item Impersonation
+  \item White-IP space for staging attacks
+\end{itemize}
+
+An overview of attack methodologies:
+
+\begin{itemize}
+  \item BGP hijack
+  \begin{itemize}
+    \item an AS announces a very specific route for a block.
+    \item an AS announces they are a peer for a block.
+  \end{itemize}
+  \item DNS
+  \item Stealth attacks with little to no control plane signature:
+  \begin{itemize}
+    \item static BGP route
+    \item static forwarding entry into an IP block
+    \item manipulations at exchange points (ettercap, etc)
+    \item breaking the routers themselves or using an insider
+  \end{itemize}
+\end{itemize}
+
+Stealth attacks have little to no signature on the control plane and may persist for a very long time, although they are likely to have limited impact, for example only affecting a very small percentage of the traffic.
+
+\subsection{Detection of an attack}
+
+Due to the nature of BGP, routes may not necessarily follow the rule of thumb of shortest path to a backbone to the destination exchange point. Extreme examples can be readily found. For example, routes from Japan to California back to South Korea.
+Sometimes the geography is a sufficient indicator, for example routes from Canada to South Korea that went through China.
+
+Note that because traceroute is based on ICMP and many networks do not expose or pass ICMP traffic, especially to non-customer networks, sometimes other routing signals need to be used, such as UDP beacons or TCP sessions.
+
+\subsubsection{BGProtect}
+
+Uses a distributed system of monitoring agents to track latency and routing to collect signals. Features are extracted from these signals and the detected route. Example features are IP ownership, AS (BGP), geography, delay, and political relationships.
+They then use a rule-based analysis engine, with rules based on expert domain knowledge and proprietary databases.
+
+There are two interesting effects of attacks. Traffic has a tendency to go to a somewhat unlikely hop, and will then reappear in a different city with no intervening hops. This can sometimes happen, but is suspicious. The other is that mitigation is typically handled via email to NOC teams around the world.
+
+\section{Homework Notes}
+
+HW1 has been mostly graded, and feedback has been given, but grades have not been published yet.
+The next HW will be published soon, and will be done in Python.
+
+The project proposal must be submitted before the end of the course.
+They will be due one month after the end of the semester.
+Each project should be a combination of programming and research, for example taking a paper that suggested two options but only implemented/checked one, and to implement the other one.
+
+\section{Software Defined Networks}
+
+The internet before SDN looked like a list of vendors, as each vendor had different things they supported, and they would often write the protocols themselves.
+Most of the infrastructure was based on a 3-tier model of specialized hardware, a specialized operating system, and a small set of apps built by the vendors themselves for specific hardware models, with many complex functions baked into the infrastructure.
+
+Generally speaking, even a traditional router can be split into a management plane, a control plane, and a data plane.
+The approach of SDN is to consolidate the control plane into one place and separate it from the data plane.
+This gives us the ability to write different applications on top of this centralized control plane, and replace them independently of the network fabric.
+
+Nicira, the original SDN startup was purchased by VMWare for 1.26B USD in 2012.
+Google published a paper\cite{Jain:2013:BEG:2534169.2486019} in 2013 describing how they use SDN.
+
+\subsection{OpenFlow}
+
+OpenFlow is a specific implementation of SDN.
+Early versions specified the exact fields, actions, and statistics gathered, but with each version this grew and now there is a generic language for defining matches, actions, etc.
+
+\paragraph{Reactive vs Proactive}
+
+In a reactive environment, the flow table has a single rule: forward all packets to the controller.
+The controller then installs flow entries in response to incoming packets.
+This is good for stateful forwarding, such as L2 switching, dynamic firewall, and resource management.
+
+In a proactive environment, the flow table is populated by the controller on switch boot.
+This is good for stateless forwarding, such as L3 switching, static firewall, etc.
+
+\paragraph{Evolution of the AL}
+
+Single tables are overly wide and overly long.
+Instead of doing the cross product of all the rules, we just pipeline everything through multiple tables.
+
+\end{document}
