@@ -1,0 +1,155 @@
+\documentclass{idc_msc}
+
+\title{Advanced Topics in IP Networks \\\large Lecture 11}
+\date{2018-12-27 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Anat Bremler-Barr\\Typeset by Steven Karas}
+
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+
+\begin{document}
+
+\maketitle
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Advanced Topics in IP Networks, taught by Dr. Anat Bremler-Barr at IDC Herzliyah in the fall semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Anat Bremler-Barr.
+
+\nocite{Varghese:2004:NAI:1203994}
+\nocite{Crovella:2006:IMI:1196480}
+\nocite{Kurose:2002:CNT:549735}
+
+\section{HW4}
+
+published, it is strongly recommended 
+
+\section{Agenda}
+
+\begin{itemize}
+  \item DDoS
+  \item Guest lecture
+\end{itemize}
+
+\section{Spoofed attacks}
+
+TCP reset attacks were so common against router BGP sessions for a period of time, and in response to this, the IETF suggested setting the TTL of BGP sessions to 254, as the overwhelming majority of legitimate sessions are within one hop, and the TTL field counts up.
+
+\section{DDoS}
+
+DDoS is an attack originating from a widely distributed network of clients.
+The motives for mounting such attacks used to be ego-based, and have become largely financial.
+MafiaBoy shut down many e-commerce sites with a SYN flood attack.
+
+Circa 2003, there were more than 5000 attacks per week, of which 80\% were vindictive "script kiddy" attacks.
+About 15\% are more serious attacks, and the rest attacked the infrastructure directly (DNS servers, routes, etc).
+The current state of affairs is that there are many more attacks ongoing at any given moment, but they tend to target the infrastructure in new ways, but many of the old-style connections 
+
+\subsection{Attack types}
+
+\subsubsection{SYN flood}
+
+Send the victim many SYN packets, potentially with spoofed sources.
+Explained more in depth in previous lectures.
+
+\subsubsection{NAPTHA}
+
+Establish many connections with the victim, and then abandon them after getting a FIN packet.
+Exhausts active TCP connections on the server by leaving many in the FIN\_WAIT\_1 state.
+
+\subsubsection{Half open connections}
+
+Sends only the start of a request (e.g. GE[T] or POS[T]).
+This exhausts the application level resources, as they are tied up.
+
+\subsubsection{Client attacks}
+
+Ties up application resources by sending random but otherwise normal client traffic.
+To avoid caching and maximize damage, cache busters and search pages are favorite targets for this.
+
+\subsubsection{DNS attack}
+
+Target the DNS servers of a victim.
+
+\subsubsection{Reflector attacks}
+
+By sending requests to various public resources with a spoofed return address of the victim, the origin of attacks can be hidden.
+In some cases, the attack is amplified as the response can be much larger than the original request.
+Memcached is a particularly egregious amplifier, as it allows UDP traffic, was publicly open, and can send extremely large responses to tiny requests.
+NTP and DNS are two other popular amplifiers.
+
+\subsubsection{Smurf amplification}
+
+By pinging the broadcast address of an internal network with the victims' address spoofed as the source.
+This was open by default in the beginning.
+
+\subsubsection{Infrastructure Attacks}
+
+Target the routers themselves.
+
+\subsection{Riverhead Networks solution}
+
+Dr. Bremler-Barr co-founded Riverhead Networks in 2000 which was purchased by Cisco in 2004 for 39 million USD.
+They provided a DDoS mitigation service.
+
+By installing a small detector box on premise, it would contact out of band the guard host which would steal the victim's flows upstream via BGP, filter and then return the cleaned flows to the victim.
+Filtering is a multi-stage process with antispoofing, statistical analysis, layer 7 analysis, traffic limiting, and traffic shaping among others.
+Because only the detection application sits with the client, guard box resources can be shared between customers.
+
+\subsection{SDN DDoS Mitigation}
+
+Lior Shafir \href{http://www.sdn-anti-spoofing.net/}{published} a paper at INFOCOM in 2017 on how to split the mitigation load across all the switches in a SDN.
+
+\section{Advanced DDoS attacks}
+
+A traditional DDoS attack will simply add more normal users to the server.
+However, a more sophisticated approach is to maximize the damage per additional user.
+
+\subsection{Hash Collision attack}
+
+Bro, a popular open source intrusion detection system used a hash table to detect port scanning.
+By choosing source ips that conformed to a certain pattern, researchers were able to show that Bro stopped scanning all incoming traffic.
+
+Some analytical work was done that compared open vs closed hash tables and found that closed hashing created high probabilities of hitting a problematic entry in the hash table.
+
+\subsection{TCP retransmission}
+
+Exploiting the timeout and retransmission mechanism of TCP.
+
+Low-Rate TCP-Targeted Denial of Service Attacks, A. Kuzmanovic and E. W. Knightly, Sigcomm 2003
+
+\subsection{Yo-Yo Attack}
+
+Published by Dr. Bremler-Barr's group in 2015.
+By attacking autoscaling groups with alternating attacks with high and low intensity, they were able to extend the effect of attacks well beyond the original period of the attack.
+
+\section{Guest lecture}
+
+\subsection{Cloudshare}
+
+Guest lecture by Dr. Zvi Guterman, CEO of Cloudshare.
+
+Cloudshare offers IaaS with some PaaS and SaaS aspects.
+One of their main solutions is IT labs and IT training on top of that.
+
+It turned into a Q\&A session. Not much to take notes on.
+
+\subsection{Actual lecture}
+
+Dr. Guterman's focus has always been on pragmatic system, and practical applications.
+
+\subsubsection{Space Time tradeoffs}
+
+For example, given a k bit symmetric cipher that works in \(O(1)\) time and \(O(1)\) memory, we want to examine different strategies for attacking this cipher.
+
+A brute force approach is to simply try each different key in turn.
+This takes \(O(2^k)\)  time and \(O(1)\) space.
+The other end of the spectrum is to precompute all pairs of keys and ciphertexts for a given plaintext.
+This takes \(O(1)\) time to lookup the answer and \(O(2^k)\) space.
+
+In 1980, Martin Hellman published a paper that described a generic scheme for moving along the space/time tradeoff.
+
+If someone wants, he is interested in advising a project in this field of tradeoffs.
+However, he only arrives in Israel every 6 weeks or so.
+If someone is interested, Dr. Bremler-Barr will introduce.
+
+\end{document}
