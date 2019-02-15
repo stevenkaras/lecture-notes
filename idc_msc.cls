@@ -21,18 +21,20 @@
 
 % based on a4 article with wider margins
 \LoadClass[a4paper]{article}
+% \RequirePackage[top=1.5cm,bottom=1.5cm,left=1.8cm,right=1.8cm]{geometry}
 \RequirePackage[top=2cm,bottom=2cm,left=3cm,right=3cm]{geometry}
 
-\RequirePackage[T5]{fontenc}
+\RequirePackage[T1]{fontenc}
 \RequirePackage[utf8]{inputenc}
 \RequirePackage[iso]{datetime}
 
-\RequirePackage[colorlinks=true,urlcolor=blue,linkcolor=black,citecolor=black,pdfencoding=unicode,unicode,naturalnames]{hyperref}
+\RequirePackage[colorlinks=true,urlcolor=blue,linkcolor=black,citecolor=black,pdfencoding=unicode,unicode]{hyperref}
 \RequirePackage{amsfonts,amssymb}
 \RequirePackage{mathtools}
 \RequirePackage{tabu}
 \RequirePackage{listings}
 \RequirePackage{accsupp}
+\RequirePackage[table]{xcolor}
 
 \inputencoding{utf8}
 
@@ -79,9 +81,10 @@
 
 % Statistics
 \newcommand{\mean}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
-\DeclareMathOperator{\Var}{Var}
-\DeclareMathOperator{\E}{E}
-\DeclareMathOperator{\loglikely}{\mathcal{L}}
+\DeclareMathOperator*{\Var}{Var}
+\DeclareMathOperator*{\Cov}{Cov}
+\DeclareMathOperator*{\E}{E}
+\DeclareMathOperator*{\loglikely}{\mathcal{L}}
 
 %=====================================================================
 % Style changes
@@ -107,21 +110,6 @@
   \EndAccSupp{}
 }
 
-% tighten the spacing for itemize and enumerate
-\let\idcmscOLDitemize\itemize
-\renewcommand\itemize{%
-  \idcmscOLDitemize%
-  \setlength{\itemsep}{0pt}%
-  \setlength{\parsep}{0pt}%
-  \setlength{\parskip}{0pt}}
-
-\let\idcmscOLDenumerate\enumerate
-\renewcommand\enumerate{%
-  \idcmscOLDenumerate%
-  \setlength{\itemsep}{0pt}%
-  \setlength{\parsep}{0pt}%
-  \setlength{\parskip}{0pt}}
-
 % TODO: remove these once I've migrated to regular lists
 % A variant of itemize with tighter spacing
 \newenvironment{itemize*}%
@@ -139,7 +127,7 @@
     \setlength{\parskip}{0pt}}%
   {\end{enumerate}}
 
-
 % This package makes changes to the enumerate command which I didn't wrap perfectly for my style changes,
 % so it needs to be down here
 \RequirePackage{enumitem}
+\setlist{noitemsep}
