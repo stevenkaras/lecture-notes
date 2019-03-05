@@ -1,0 +1,227 @@
+\documentclass{idc_msc}
+
+\title{Cryptography \\\large Lecture 1}
+\date{2019-03-05 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Alon Rosen\\Typeset by Steven Karas}
+
+\AtBeginDocument{\maketitle}
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+
+\begin{document}
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Cryptography, taught by Dr. Alon Rosen at IDC Herzliyah in the spring semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Alon Rosen.
+
+\nocite{Katz:2014:IMC:2700550}
+\nocite{Goldreich:2000:FCB:519078}
+
+\section{Grading}
+
+90\% exam, 10\% homeworks.
+There will be 6 homework assignments.
+
+\section{History of Cryptography}
+
+\begin{center}
+\[
+  \underbrace{\text{CRYPTO}}_{\text{"hidden"}}
+  \underbrace{\text{GRAPHY}}_{\text{"to write"}}
+\]
+\end{center}
+
+Despite being a field of study for over 3000 years, only in the last 25-50 years it's become a proper field of scientific study.
+The field covers the concept of secrets from symmetric encryption through secure computation.
+
+From around 500 BCE until World War 2, most cryptography followed a simple cycle of design, break, repair, break, ...
+\footnote{True story: at one point, the Americans were using onetime pads for encrypting messages between the American embassy in Moscow and Washington. The Soviets were able to plant microphones inside the embassy, and then hired hundreds of people who were able to decode the letters typed by the Americans before they were encrypted.}
+
+Shannon in 1949\cite{Shannon:1949:CTSS:656715} published a paper that established Cryptography as a rigorous study of mathematics.
+He described perfect secrecy, and came to a pessimistic conclusion that the security of a message is limited by the availability of pure entropy.
+
+Diffie and Hellman in the 1976\cite{diffie1976new} published a paper that described the first asymmetric key exchange cryptosystem.
+They described the difference between infeasible versus impossible computational security, and based their key exchange system on complex computation.
+They won the Turing Award for their work in 2015.
+
+Ron Rivest, Adi Shamir and Leonard Adelman from MIT published in 1978\cite{Rivest:1978:MOD:359340.359342} the first practical asymmetric cryptosystem.
+They published a set of keys of various sizes for the public to factor for prize money.
+The largest yet factored is called RSA-768.
+
+Shafi Goldwasser and Silvio Micali in the 1984\cite{goldwasser1984probabilistic} published definitions of computational security building on top of Shannon's work.
+They won the Turing Award in 2012.
+
+\paragraph{Scope of cryptography}
+
+\begin{description}
+  \item[private-key] most communication uses this method. DES and AES are the most common ciphers.
+  \item[public-key] DH, Rabin, RSA, etc.
+  \item[authentication and integrity] ensuring that messages are not changed or forged.
+  \item[secure multi-party computation] computing answers without sharing too much information
+  \item[blockchain]
+  \item[private information retrieval]
+\end{description}
+
+\paragraph{Basic modern approach}
+
+\begin{enumerate}
+  \item Define - has to be meaningful
+  \item Construct - efficient, but initially just feasible
+  \item Prove - assumptions have to be reasonable
+\end{enumerate}
+
+There is a central assumption that there exist hard problems.
+
+It's more or less safe to assume that we have \(2^{100}\) computational cycles worldwide in a year (as an upper bound).
+It would take us at least \(2^{28}\) years to brute force a 128-bit key.
+
+\section{Basic concepts}
+
+In the basic model, consider two parties Alice and Bob communicating over an insecure channel.
+We will consider a message being sent by Alice to Bob, and two parties Eve and Mallory.
+Eve's goal is to discover the contents of the message, whereas Mallory's goal is to change it in a way that Bob won't know.
+Eve and Mallory may or may not be the same entity.
+
+\paragraph{Symmetric Encryption}
+
+Alice and Bob can agree on a secret code (cryptosystem) where they are the only ones who know that secret.
+
+\paragraph{Asymmetric Encryption}
+
+Alice and Bob can agree on a secret code without using a secure channel.
+
+\paragraph{Layers of cryptography}
+
+\begin{enumerate}
+  \item Hard problems
+  \item Cryptographic primitives such as encryption, signatures, pseudorandom generators, zero-knowledge proofs, etc
+  \item Protocols
+  \item Secure systems and implementations
+\end{enumerate}
+
+More advanced layers require deeper knowledge of previous layers, and are generally more difficult to construct.
+
+\paragraph{Base assumptions}
+
+All the following logically follow from each other:
+
+\[
+  \exists =\text{we can construct}
+\]
+\[
+  \nexists \text{ poly-time algorithm for factoring integers}
+\]
+\[
+  \exists \text{ one-way functions}
+\]
+\[
+  \exists \text{ PRG}
+\]
+\[
+  \exists \text{ secret-key encryption}
+\]
+\[
+  \exists \text{ secure election protocols}
+\]
+
+\subsection{Hard Problems}
+
+An algorithm \(A\) is defined by \(A(x),\; x \in \Sigma^*\) where usually \(\Sigma=\{0,1\}\), and denoted as:
+
+\[
+  A : \Sigma^* \to \Sigma^*
+\]
+
+\paragraph{Computation}
+
+We say that \(A\) computes
+
+\[
+  f: \{0,1\}^* \to \{0,1\}^*
+\]
+
+if for an input \(x\), \(A\) outputs \(f(x)\).
+
+\paragraph{Decision}
+
+We say taht \(A\) decides \(L \subseteq \{0,1\}^*\) if:
+
+\[
+  A(x) = 1 \Leftrightarrow x \in L
+\]
+
+\paragraph{Time Complexity}
+
+We say that \(A\) runs in time \(T\) where \(|x|\) denotes the length of an input \(x\):
+
+\[
+  T: \mathbb{N} \to \mathbb{N} : \forall x,\, A(x) \text{ halts after \(T(|x|)\) steps}
+\]
+
+We say that \(A\) runs in polynomial time if it runs in time \(O(n^c)\) for some constant \(c\).
+
+We consider polytime as being efficient and feasible.
+
+\paragraph{Examples of polytime problems}
+
+\[\textrm{Div}(x,y) = (q,r) \text{ s.t. } x = y \cdot q + r, \; 0 \le r < y\]
+
+\[\textrm{GCD}(x,y) = \text{largest } z \text{ s.t. } z|x \text{ and } z|y\]
+
+% \[\textit{Exp}(x,y) = x^y\]
+% not in polytime. counterexample: x=2, y=n
+
+\[\textrm{ModExp}(x,y,z) = x^y \mod z\]
+
+\paragraph{Problems believed to not be polytime}
+
+\(\textit{NP}\) is the set of all decision problems that have short proofs of membership.
+\(L \in \textit{NP}\) means that \(\exists V \in P\) and a polynomial \(q\) such that:
+
+\[x \in L \Leftrightarrow \exists w, |w| \le q(|x|), V(x, w) = 1\]
+
+where \(w\) is the witness for \(x \in L\).
+
+We say that \(L\) is \(\textit{NP}\textrm{-complete}\) if a polytime algorithm for \(L\) implies a polytime algorithm for any \(L \in \textit{NP}\).
+
+\paragraph{Examples of such problems}
+
+\[\textrm{SAT} = \{\phi(x_1, \ldots, x_n) | \exists w \; \phi(w) = 1\}\]
+
+\[\textrm{Factor}(N) = \exists P, Q : PQ = N\]
+
+\subsubsection{Repeated squaring}
+
+A naive approach to implementing ModExp is to first compute \(a=x^y\) and then \(a \mod z\).
+However, this is not polytime.
+
+To find a polytime approach, consider the identity:
+
+\[(a \mod z) (b \mod z) = ab \mod z\]
+
+Which gives us an efficient construction:
+
+\[y = y_0 + y_1 \cdot 2 + y_2 \cdot 4 + \cdots + y_t 2^t\]
+\[x^y = x^{y_0} \cdot (x^2)^{y_1} \cdot (x^4)^{y_2} \cdot \cdots (x^{2^t})^{y_t} \]
+
+Where each step is \(\mod z\). This gives us \(t=\log y=|y|\) steps that each finish in polytime.
+
+\subsubsection{Integer Factorization}
+
+Given \(n\), we want to find a nontrivial factor (\(\ne 1\)) of \(n\).
+
+We do not know if this is in \(P\) or \(\textit{NP}\textrm{-complete}\).
+
+Some algorithms:
+
+\begin{itemize}
+  \item Exhaustive search (trial division). Takes \(\widetilde{\Theta}(n)\). Can be improved to \(\widetilde{\Theta}(\sqrt{n})\).
+  \item Quadratic sieve. Takes \(2^{\widetilde{\Theta}(\sqrt{|N|})}\)
+  \item Number field sieve. Takes \(2^{\widetilde{\Theta}(\sqrt[3]{|N|})}\)
+\end{itemize}
+
+\section{Next week}
+
+We did not cover randomized algorithms, but it is strongly recommended to go over the material before next week.
+
+\end{document}
