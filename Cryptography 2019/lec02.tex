@@ -1,0 +1,347 @@
+\documentclass{idc_msc}
+
+\title{Cryptography \\\large Lecture 2}
+\date{2019-03-12 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Alon Rosen\\Typeset by Steven Karas}
+
+\AtBeginDocument{\maketitle}
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+\DeclareMathOperator*{\xor}{\oplus}
+\let\E\relax
+\DeclareMathOperator*{\E}{\mathrm{E}}
+
+\begin{document}
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Cryptography, taught by Dr. Alon Rosen at IDC Herzliyah in the spring semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Alon Rosen.
+
+\nocite{Goldreich:2000:FCB:519078}
+\nocite{Cormen:2001:IA:580470}
+
+\section{Recap}
+
+\subsection{Factorization Complexity}
+
+As a clarification, the average case complexity of integer factorization is trivial. However, we care about the average case behavior for a subset of integers in the form \(N=PQ\) where both \(P\) and \(Q\) are prime and around the same size.
+
+The current state of the art works in time \(2^{1.92 n^{1/3} \log n^{2/3}}\).
+
+\section{Agenda}
+
+\begin{itemize}
+  \item Probability theory in a nutshell
+  \item Perfect secrecy
+\end{itemize}
+
+\clearpage
+\section{Probability Theory}
+
+Denote a probability space as a countable set \(S\) and a function \(\Pr : S \to [0,1] \in \mathbb{R}\) such that \(\sum_{x \in S} \Pr[x] = 1\)
+
+\paragraph{Examples:}
+
+\begin{itemize}
+  \item Alice flips 100 fair coins. The probability space is \(A = \{0,1\}^{100}\) with \(\Pr = 0.5^{100}\)
+  \item Bob flips 100 fair coins. The probability space is the same as above
+  \item Carol picks Alice's coin 75\% of the time, and Bob's the rest.
+  \item Eve gets \(E = A \xor B\). 
+  \[
+  \Pr[(x,y,z)]
+  \]
+\end{itemize}
+
+\subsection{Identities}
+
+\paragraph{Complement}
+
+\[\Pr[\bar{T}] = 1 - \Pr[T]\]
+
+\paragraph{Union}
+
+\[\Pr[T_1 \lor T_2] \underbrace{=}_{T_1 \cap T_2 = \emptyset} \Pr[T_1] + \Pr[T_2]\]
+
+\paragraph{Union Bound}
+
+\[
+  \Pr[T_1 \lor T_2] \le \Pr[T_1] + \Pr[T_2]
+\]
+
+This is sometimes useful to provide a very rough bound.
+
+\paragraph{Total Probability}
+
+\[
+  \Pr[T] \underbrace{=}_{S_i\text{ is pairwise disjoint}} \sum_i \Pr[T \land S_i]
+\]
+
+\subsection{Independence}
+
+\(x, y\) are independent iff:
+
+\[
+  \forall x,y \Pr[X=x \land Y=y] = \Pr[X=x] \cdot \Pr[Y=y]
+\]
+
+\paragraph{XOR}
+
+Bitwise xor has many useful properties worthy of mention.
+
+From our example before with Alice, Bob, and Eve:
+
+\[
+  E = A \xor B \Leftrightarrow E \xor B = A
+\]
+\[E = (E \xor B) \xor B\]
+
+which gives us a probability function for \((a,b,c)\):
+
+\[
+  \Pr[A = a \land B = b \land E = e] \ne \left(\frac{1}{2^{100}}\right)^3
+\]
+
+\subsection{Expectation}
+
+\[\E[X] = \sum_x \Pr[X = x] \cdot x\]
+
+Expectation is linear:
+
+\[\E[X+Y] = \E[X] + \E[Y]\]
+\[\E[cX] = c \E[X]\]
+
+However, the following only holds if \(X, Y\) are independent, but not generally:
+
+\[\E[X \cdot Y] = \E[X] \cdot \E[Y]\]
+
+\paragraph{Example: flipping 100 coins}
+
+Denote the number of heads flipped by Alice as \(Z_A\) defined as follows:
+
+\[
+Z_A^i = \begin{cases}
+1 & a_i = 0 \\
+0 & a_i = 1
+\end{cases}
+\]
+
+The expectation:
+
+\[
+  \E[Z_A^i] = \underbrace{\Pr[Z_A^i = 0] \cdot 1}_{\frac{1}{2}} + \underbrace{\Pr[Z_A^i=1]\cdot 0}_{0} = \frac{1}{2}
+\]
+
+\[
+\begin{aligned}
+\E[Z_A] &= \E\left[\sum_{i = 1}^{100} Z_A^i\right] \\
+&= \sum_{i = 1}^{100} \E[Z_A^i] \\
+&= \sum_{i = 1}^{100} \frac{1}{2} \\
+&= 50 \\
+\end{aligned}
+\]
+
+Consider the expectation of the square:
+
+\[
+\begin{aligned}
+\E[(Z_A)^2] &= \E\left[ \left( \sum_{i=1}^{100} Z_A^i \right)^2 \right] \\
+&= \E\left[ \sum_{i=1}^{100} \left( Z_A^i \right)^2 + \sum_{i \ne j} Z_A^i Z_A^j \right] \\
+&= \sum_{i=1}^{100} \E\left[ \left( Z_A^i \right)^2 \right] + \sum_{i \ne j} \E\left[  Z_A^i Z_A^j \right] \\
+&= \sum_{i=1}^{100} \E\left[ Z_A^i \right] + \sum_{i \ne j} \E\left[  Z_A^i Z_A^j \right] \\
+&= \ldots
+\end{aligned}
+\]
+
+\subsection{Bounds}
+
+\subsubsection{Markov Bound}
+
+If \(X\) is a non-negative random variable.
+
+\[\Pr[X \ge t] \le \frac{\E[X]}{t}\]
+
+If the expectation is small, this gives us a good bound.
+
+\subsubsection{Chernoff Bound}
+
+Let \(X_1, \ldots, X_n\) be independent \(\{0,1\}\) valued random variables with \(\Pr[X_i = 1] = \mu \;\; \forall i\)
+
+\[
+\begin{aligned}
+  \Pr \left[\frac{1}{n} \sum_{i=1}^{n} x_i > \mu + \varepsilon\right] &\le e^{-2\varepsilon^2 n} \\
+  \Pr \left[\frac{1}{n} \sum_{i=1}^{n} x_i > \mu - \varepsilon\right] &\le e^{-2\varepsilon^2 n}
+\end{aligned}
+\]
+
+\paragraph{Example:}
+
+\[
+\begin{aligned}
+\Pr[Z_A \ge 70] &= \Pr\left[\frac{1}{100} \sum_{i=1}^{100} Z_A^i \ge \frac{70}{100}\right] \\
+&= \Pr\left[\frac{1}{100} \sum_{i=1}^{100} Z_A^i \ge \underbrace{\frac{50}{100}}_{\mu} + \underbrace{\frac{20}{100}}_{\varepsilon}\right] \\
+&< e^{-2\cdot\left(\frac{1}{5}\right)^2 \cdot 100} \approx 0.00033 \\
+\end{aligned}
+\]
+
+\subsubsection{Chebyshev Bound}
+
+Not covered, but lies in between Markov and Chernoff.
+
+\subsection{Conditional Probability}
+
+Let \(E, F\) be events. Consider the probability of \(E\) occurring given that \(F\) occurs:
+
+\[
+  \Pr[E|F] = \frac{\Pr[E \land F]}{\Pr[E]}
+\]
+
+\paragraph{Example:}
+
+Consider:
+
+\[
+\begin{aligned}
+  \Pr[Z_c \text{ is even} | Z_A \text{ is even}] &= \ldots \\
+  &= \frac{3}{4} + \frac{1}{4} \cdot \frac{1}{2} = \frac{7}{8}
+\end{aligned}
+\]
+
+\subsubsection{Bayes' Law}
+
+\[
+  \Pr[E|F] = \frac{\Pr[E \land F]}{\Pr[E]} = \frac{\Pr[F|E]\Pr[E]}{\Pr[F]}
+\]
+
+\paragraph{Example:}
+
+Consider:
+
+\[
+\begin{aligned}
+  \Pr[Z_A \text{ is even} | Z_c \text{ is even}] &= \ldots \\
+  &= \frac{3}{4} + \frac{1}{4} \cdot \frac{1}{2} = \frac{7}{8}
+\end{aligned}
+\]
+
+\clearpage
+\section{Private-key Cryptography}
+
+This section is largely the result of Shannon's masters thesis\cite{Shannon:5057767} and his later paper\cite{Shannon:1949:CTSS:656715}.
+
+We will present private key encryption defined as two actors Alice and Bob who have an agreed upon key \(k\).
+Alice encrypts a message \(m\) using key \(k\) denoted as \(E_k(m)\) and sends it over an insecure channel to Bob.
+Bob then decrypts the message using key \(k\) denoted as \(D_k(E_k(m)) = m\).
+The threat model we will consider is a simple eavesdropper Eve who sees all messages over the channel.
+
+\subsection{Kerckhoff principle}
+
+This is the underlying principle of cryptography through WW2: all security must rely on the secrecy of the key, and nothing else.
+Specifically, assume that the workings of your system will be discovered by an adversary.
+
+\subsection{Syntax}
+
+A private key cryptosystem consists of a plaintext space \(P\), a ciphertext space \(C\), and a keyspace \(K\) with three algorithms \(G, E, D\):
+
+\begin{enumerate}
+  \item Key generation \(G\) is a randomized algorithm that gives a private key \(k \in K,\;\; k \gets^R G\).
+  \item Encryption \(E_k\) using key \(k\) gives ciphertext \(c\): \(c=E_k(m)\). This algorithm may be randomized.
+  \item Decryption \(D_k\) using key \(k\) gives the plaintext \(m\): \(D_k(E_k(m))\) under the assumption that the key used for decryption is the same as that used for encryption.
+\end{enumerate}
+
+\subsection{History: Shift cipher (Caesarean cipher)}
+
+The oldest known cipher.
+Works by shifting letters in alphabetic order.
+For example, a becomes b, b becomes c, etc.
+The key is the number of times to shift the alphabet.
+
+Formally:
+
+\[
+  k \gets^R \{0, \ldots, 25\}
+\]
+\[
+  P = C = \{A, \ldots, Z\}^l \approx \{0, \ldots, 25\}^l
+\]
+\[
+  E_k(m_1, \ldots, m_l) = c_1, \ldots, c_l
+\]
+\[
+  c_i = m_i + k \mod 26
+\]
+\[
+  D_k(c): m_i = c_i - k \mod 26
+\]
+
+This system is trivially insecure because the keyspace is too small.
+However, if the message length is 1, then it is secure.
+
+\subsection{Large key size principle}
+
+\(k\) should be large enough to avoid exhaustive key search.
+
+\subsection{History: Substitution cipher}
+
+The key is a random permutation of \(\{0, \ldots, 25\}\). This gives us a keyspace with \(26! \approx 2^88\) possible keys.
+
+\[E_k(m_1, \ldots, m_l) = k(m_1), \ldots, k(m_l)\]
+\[D_k(c_1, \ldots, c_l) = k^{-1}(c_1), \ldots, k^{-1}(c_l) = m_1, \ldots, m_l\]
+
+This is also insecure due to frequency analysis.
+
+\subsection{History: One-time pad (Vernam's cipher)}
+
+Let the key be \(k \gets^R \{0,1\}^l\).
+The text space is \(m \in \{0, 1\}\).
+
+\[
+\begin{aligned}
+  c_i &= m_i \xor k_i \\
+  E_k(m) &= m \xor k \\
+  D_k(c) &= c \xor k
+\end{aligned}
+\]
+
+This system is perfectly secure, yet it leaks the size of the messages.
+
+\subsection{Perfect Security}
+
+All of the following are insufficient conditions
+
+\begin{enumerate}
+  \item An adversary cannot learn the key from the ciphertext. Insufficient because the ciphertext may be the plaintext.
+  \item An adversary cannot learn the plaintext from the ciphertext. Insufficient because we need to secure portions of the plaintext. For example, just the content of an encrypted email, without the headers.
+  \item An adversary cannot learn any symbol of the plaintext. This is insufficient because it still allows the adversary to extract contextual information.
+  \item An adversary cannot learn any information about the plaintext.
+\end{enumerate}
+
+To resolve this, Shannon defined perfect indistinguishability:
+
+\subsubsection{Perfect indistinguishability}
+
+A cryptosystem \(G,E,D\) satisfies perfect indistinguishability\footnote{Take note that this still allows some information about the message to be leaked, such as the presence of a message and its length.} if \(\forall m_1, m_2 \in P\) and \(k \gets^R G\) the random variables \(E_k(m_1), E_k(m_2)\) have the same distribution.
+That is, \(\forall c \in C\):
+
+\[
+  \Pr[E_k(m_1) = c] = \Pr[E_k(m_2) = c]
+\]
+
+\subsection{Proof: Insecurity of Shift, Substitution ciphers}
+
+For example, consider the two plaintexts: "GANZ" v "BIBI".
+Because "BIBI" has repeated characters, the ciphertext will have identical characters in the first and third positions, as well as the second and fourth.
+
+\subsection{Proof: Security of one-time pads}
+
+For a fixed \(m \in \{0,1\}^l\) and \(c \in \{0,1\}^l\):
+
+\[
+  \Pr_k[E_k(m) = c] = \Pr_k[m \xor k = c] = \frac{1}{2^l}
+\]
+
+\section{Next week}
+
+Mor Weiss, a postdoc at IDC will give the lecture next week.
+We will cover Shannon security and that the key length must be larger than the message length.
+
+\end{document}
