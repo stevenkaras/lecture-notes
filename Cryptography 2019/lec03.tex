@@ -1,0 +1,242 @@
+\documentclass{idc_msc}
+
+\title{Cryptography \\\large Lecture 3}
+\date{2019-03-19 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Mor Weiss\\Typeset by Steven Karas}
+
+\AtBeginDocument{\maketitle}
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+\let\E\relax
+\DeclareMathOperator*{\E}{\mathrm{E}}
+\DeclareMathOperator*{\xor}{\oplus}
+\let\NPclass\relax
+\newcommand{\NPclass}{\texorpdfstring{\ensuremath{\mathcal{NP}}}{NP}}
+\let\Pclass\relax
+\newcommand{\Pclass}{\texorpdfstring{\ensuremath{\mathcal{P}}}{P}}
+\let\Cipherspace\relax
+\newcommand{\Cipherspace}{\texorpdfstring{\ensuremath{\mathcal{C}}}{C}}
+\let\Messagespace\relax
+\newcommand{\Messagespace}{\texorpdfstring{\ensuremath{\mathcal{P}}}{P}}
+\let\Keyspace\relax
+\newcommand{\Keyspace}{\texorpdfstring{\ensuremath{\mathcal{K}}}{K}}
+
+\begin{document}
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Cryptography, taught by Dr. Alon Rosen at IDC Herzliyah in the spring semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Alon Rosen.
+
+\nocite{Goldreich:2000:FCB:519078}
+\nocite{Cormen:2001:IA:580470}
+
+% \section{Agenda}
+
+% We will cover Shannon security and that the key length must be larger than the message length.
+
+\section{Perfect secrecy}
+
+We will provide an alternative defition of perfect security, and discuss the tradeoff between computational complexity and security.
+
+A cryptosystem is a 3-tuple of \((G,E,D)\) where \(G\) is a key generation algorithm \(k \gets^R G\), \(E\) is the encryption function \(c \gets^R E(k,m)\), and \(D\) is the decryption function \(m \gets D(k,c)\).
+
+\subsection{Definition: Perfect Indiguishability}
+
+\((G,E,D)\) satisfies perfect indistinguishability if for \(\forall m_o, m_1 \in \Messagespace\) and \(k \gets^R G\), it holds that:
+
+\[
+  \forall c \in \Cipherspace \;\; \Pr[E(k,m_0) = c] = \Pr[E(k,m_1) = c]
+\]
+
+Note that we do not set the randomness of \(E\), and we can consider it to be part of the key for the purposes of this definition.
+
+\paragraph{Example: One-time pad}
+
+Let \(m_0, m_1 \in \{0,1\}^l\) and a ciphertext \(c \in \{0,1\}^l\).
+Note that \(k_0 = m_0 \xor c\) and \(k_1 = m_1 \xor c\).
+However, we selected the key \(G : k \gets^R \{0,1\}^l\) with uniform probability, so this holds perfect security.
+
+\subsection{Shannon Security}
+
+Let \(M\) be a distribution over \(\Messagespace\).
+Let \(C\) be a distribution over \(\Cipherspace\).
+\((G,E,D)\) satisfies Shannon secrecy with respect to \(M\) if \(\forall m \in \Messagespace\) and \(\forall c \in \Cipherspace\):
+
+\[
+  \Pr[ M = m \mid C = c ] = \Pr[ M = m ]
+\]
+
+In other words, knowing the ciphertext gives us no information about the plaintext from all other plaintexts.
+
+\subsection{Equivalency}
+
+We will show that if \((G,E,D)\) satisfies perfect indistinguishability iff it also satisfies Shannon secrecy.
+
+\paragraph{Perfect indistinguishability implies Shannon secrecy}
+
+Assume that \((G,E,D)\) satisfies perfect indistinguishability.
+Recall Bayes' Rule:
+
+\[
+  \Pr[B \mid A] = \frac{\Pr[A \mid B] \Pr[B]}{\Pr[A]}
+\]
+
+\[
+  \Pr[M = m \mid C = c] =  \frac{\Pr[C = c \mid M = m] \Pr[M = m]}{\Pr[C = c]}
+\]
+
+We want to show that \(\Pr[C = c \mid M = m] = \Pr[C = c]\)
+
+% I got distracted and missed the rest of the proof which was done verbally
+
+\paragraph{The other direction}
+
+The full proof can be found in Katz and Lindell\cite[Section 2.1]{Katz:2014:IMC:2700550}
+
+\subsection{Sufficient keyspace}
+
+If \((G,E,D)\) is perfect indistinguishability then \(|\Keyspace| \ge |\Messagespace|\)
+
+\paragraph{Proof}
+
+Assume towards negation that \(|\Keyspace| < |\Messagespace|\).
+Let \(M\) be the uniform distribution\footnote{There is loss of generality, but it is possible to extend this proof to cover any distribution} over \(\Messagespace\).
+Let \(m_0 \in \Messagespace\) and \(c \in \mathit{Supp}(E(\cdot, m_0))\) (\(c\) such that \(\exists k \in \Keyspace : E(k,m) = c\)).
+Let \(M_c = \{m' : \exists k' D(k', c) = m'\}\)
+However, \(|M_c| = |\Keyspace| < |\Messagespace|\).
+
+\[
+  \Pr[M = m_1 \mid C = c] = 0 \ne \frac{1}{|\Messagespace|} = \Pr[M = m]
+\]
+
+\subsection{Statistical distance}
+
+Let \(X, Y\) be random variables over \(S\).
+For some decider \(D : s \to \{0,1\}\) for some sample \(s \in S\).
+
+\[
+  SD(X,Y) = \max_{D: S \to \{0,1\}} \left\lvert \Pr[D(X) = 1] - \Pr[D(Y) = 1] \right\rvert
+\]
+
+\paragraph{Example: Unfair coins}
+
+Let \(X\) be a fair coin, and \(Y\) be an unfair coin that turns up heads with probability \(2/3\).
+
+Define the decider as:
+
+\[
+  D(s) = \begin{cases}1 & s = \textrm{heads} \\ 0 & s =\textrm{tails} \end{cases}
+\]
+
+\[
+  SD(X,Y) \ge |\underbrace{\Pr[D(X) =1]}_{1} - \underbrace{\Pr[D(Y) = 1]}_{2}|
+\]
+
+\[
+\begin{aligned}
+  \Pr[D(X) = 1] &= \Pr[D(X) = 1 \mid x = \textrm{heads}] \cdot \overbrace{\Pr[X = \textrm{heads}]}^{\frac{1}{2}} \\
+  &+ \Pr[D(X) = 1 \mid x = \textrm{tails}] \cdot \overbrace{\Pr[D(X) = \textrm{tails}]}^{\frac{1}{2}} \\
+  &= \frac{1}{2} \left( \Pr[D(\textrm{heads}) = 1] + \Pr[D(\textrm{tails}) = 1] \right)
+\end{aligned}
+\]
+
+\[
+  \Pr[D(Y) = 1] = \frac{1}{3} \Pr[D(\textrm{heads}) = 1] + \frac{2}{3} \Pr[D(\textrm{tails}) = 1]
+\]
+
+\[
+\begin{aligned}
+  SD(X,Y) &\ge \big\lvert \frac{1}{2} \left( \Pr[D(\textrm{heads}) = 1] + \Pr[D(\textrm{tails}) = 1] \right) \\
+  &- \frac{1}{3} \Pr[D(\textrm{heads}) = 1] + \frac{2}{3} \Pr[D(\textrm{tails}) = 1] \big\rvert \\
+  &= \ldots = |1/3 - 1/6| = 1/6
+\end{aligned}
+\]
+
+\subsection{Statistical secrecy}
+
+\((G,E,D)\) satisfies statistical secrecy if \(\forall m_0, m_1 \in \Messagespace\):
+
+\[
+  SD(E(K,m_0), E(K, m_1)) \le \varepsilon
+\]
+
+It is possible to prove that if \((G,E,D)\) is \(\varepsilon\)-statistically secret then \(|\Keyspace| \ge (1-\varepsilon) |\Messagespace|\)
+
+\subsection{Asymptotic security}
+
+For some security parameter \(n\), consider a cryptosystem \((G,E,D)\).
+Let \(k \gets G(1^n)\), meaning that we give \(G\) an unary input of length \(n\).
+We want \(G,E,D\) to run in \(\textrm{poly}(n) \equiv \exists c \; O(n^c)\) time.
+
+We define our security against all adversaries that run in \(\textrm{poly}(n)\) time and obtain an advantage \(\varepsilon = \textrm{negl}(n)\).
+
+\(\varepsilon(n) : \mathbb{N} \to \{0,1\}\) is negligible if \(\forall c \exists n_0\) such that \(\forall n> n_0, \varepsilon(n) < \frac{1}{n^c}\).
+
+For all future definitions, assume that messages have the same length: \(\forall n\) all messages \(\Messagespace_n\) have the same length.
+
+\subsubsection{Asymptotically indistinguishable encryption}
+
+Let \((G,E,D)\) be an encryption scheme over \(\Messagespace = \cup_n \Messagespace_n\).
+\((G,E,D)\) has \(\varepsilon\)-indistinguishable encryptions if \(\forall\) nonuniform probabilistic polytime\footnote{hereafter abbreviated PPT} decider \(A\), \(\exists \textrm{negl}(\varepsilon)\) such that \(\forall m_0, m_1 \in \Messagespace_n\):
+
+\[
+  \varepsilon \ge \left\lvert \Pr[A(E(k,m_0)) = 1] - \Pr[A(E(k, m_1)) = 1] \right\rvert
+\]
+
+\paragraph{Example: shift cipher}
+
+Consider the case of a shift cipher.
+Because the same letter is always shifted the same amount, it follows that given a message of sufficient length (say longer than 26 letters), then we slowly gain a larger advantage.
+
+\paragraph{Example: biased one-time pad}
+
+\[
+  G : \forall 1 \le i \le n \quad k_i = \begin{cases}1 & 0.49 \\ 0 & 0.51 \end{cases}
+\]
+
+\[
+  E(k,m) = k \xor m
+\]
+
+Even this small bias very quickly gives an adversary sufficient advantage to be asymptotically insecure
+
+\paragraph{Example: }
+
+\[
+  \Messagespace_n = \{0,1\}^{2n}
+\]
+
+\[
+  G : \textrm{pick } k \gets^R \{0,1\}^n; \textrm{ output } k
+\]
+
+\[
+  E(k,m) : \textrm{pick } i_1,\ldots,i_{2n} \gets^R [n]; \textrm{ output } (i_1,\ldots,i_{2n},m_1 \xor k_{i_1}, \ldots, m_{2n} \xor k_{i_{2n}})
+\]
+
+In this case as well, it's sufficient that at least one bit of the key be reused for an adversary to gain an advantage.
+
+Consider \(m, m' \gets \{0,1\}^{2n}\):
+
+\[
+  c = (i_1, \ldots, i_{2n}, c_1, \ldots, c_{2n})
+\]
+
+\[
+  c' = (i_1, \ldots, i_{2n}, c'_1, \ldots, c'_{2n})
+\]
+
+\subsubsection{Concrete indistinguishable encryption}
+
+Let \((G,E,D)\) be an encryption scheme over \(\Messagespace\).
+\((G,E,D)\) is \((t,\varepsilon)\)-secure if \(\forall A\) that runs in time \(\le t\) and \(\forall m_0, m_1 \in \Messagespace\):
+
+\[
+  \varepsilon \ge \left\lvert \Pr[A(E(k,m_0)) = 1] - \Pr[A(E(k, m_1)) = 1] \right\rvert
+\]
+
+\section{Next week}
+
+Next week we will give an alternative definition of computational security.
+
+\end{document}
