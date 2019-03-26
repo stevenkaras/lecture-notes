@@ -1,0 +1,300 @@
+\documentclass{idc_msc}
+
+\title{Cryptography \\\large Lecture 4}
+\date{2019-03-26 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Alon Rosen\\Typeset by Steven Karas}
+
+\AtBeginDocument{\maketitle}
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+\let\E\relax
+\DeclareMathOperator*{\E}{\mathrm{E}}
+\DeclareMathOperator*{\xor}{\oplus}
+\let\NPclass\relax
+\newcommand{\NPclass}{\texorpdfstring{\ensuremath{\mathcal{NP}}}{NP}}
+\let\Pclass\relax
+\newcommand{\Pclass}{\texorpdfstring{\ensuremath{\mathcal{P}}}{P}}
+\let\Cipherspace\relax
+\newcommand{\Cipherspace}{\texorpdfstring{\ensuremath{\mathcal{C}}}{C}}
+\let\Messagespace\relax
+\newcommand{\Messagespace}{\texorpdfstring{\ensuremath{\mathcal{P}}}{P}}
+\let\Keyspace\relax
+\newcommand{\Keyspace}{\texorpdfstring{\ensuremath{\mathcal{K}}}{K}}
+\let\getsrandom\relax
+\newcommand{\getsrandom}{\ensuremath{\overset{R}{\gets}}}
+\let\negligible\relax
+\DeclareMathOperator*{\negligible}{\mathrm{neg}}
+\let\polynomial\relax
+\DeclareMathOperator*{\polynomial}{\mathrm{poly}}
+
+\begin{document}
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Cryptography, taught by Dr. Alon Rosen at IDC Herzliyah in the spring semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Alon Rosen.
+
+\nocite{Katz:2014:IMC:2700550}
+
+\section{Agenda}
+
+\begin{itemize}
+  \item Computational security
+\end{itemize}
+
+\section{Computational security - Private key}
+
+\subsection{Definition: Computationally indistinguishable encryptions}
+
+\((G,E,D)\) over \(\Messagespace = \cup_n \Messagespace_n\) has computationally indistinguishable encryptions if for any PPT \(A\) there exists a negligible function \(\varepsilon\) such that \(\forall m_1, m_2 \in \Messagespace\):
+\marginpar{Academically, we discuss asymptotic negligibility. In practice, we care that something is negligible to within \(1/2^{128}\)}
+
+\[
+  \Pr[A(E_k(m_0)) = 1] - \Pr[A(E_k(m_1)) = 1] \le \varepsilon(n)
+\]
+
+We define a negligible function if it holds for any \(\polynomial(n)\):
+
+\[
+  \negligible(n) \le \frac{1}{\polynomial(n)}
+\]
+
+Note that we set the length of the encrypted messages to a constant value.
+There is a real-world case of Google's autocomplete being broken based on the length of repeated messages.
+\footnote{The game-based alternative definition will not be covered, but appears in both the lecture notes and in Katz-Lindell}.
+
+\subsection{Definition: Semantic Security}
+
+\((G, E, D)\) over \(\Messagespace = \cup_n \Messagespace_n\) satisfies semantic security if for any PPT \(A\) there exists a PPT \(A'\) for any distribution \(M\) over \(\Messagespace_n\) such that \(\forall f: \Messagespace_n \to \{0, 1\}^*\) it holds that:
+
+\[
+  \Pr[A(E_k(M)) = f(M)] \le \Pr[A'(1^n) = f(M)] + \negligible(n)
+\]
+
+Note that we give \(A'\) an input in unary to make it fair, as \(A\) gets an input in \(\polynomial(n)\).
+For example, consider the following functions:
+
+\begin{itemize}
+  \item \(f(m) = m\)
+  \item \(f(m) = m_i\) for any \(i\)
+  \item Note that \(f(m) = |m|\) is allowed, as this is not considered secret by definition.
+\end{itemize}
+
+\subsection{Theorem: Equivalency}
+
+\((G,E,D)\) satisfies computationally indistinguishable encryption iff it satisfies semantic security.
+
+\paragraph{Computationally indistinguishable encryption implies semantic security}
+
+Let \(A\) be a PPT, \(M\) be any distribution over \(\Messagespace_n\) and \(f\) be any function.
+Fix any \(m_0 \in \Messagespace_n\) and let \(A'(1^n)\) work as follows:
+
+\begin{enumerate}
+  \item \(k \getsrandom G(1^n)\)
+  \item Run \(A(E_k(m_0))\)
+\end{enumerate}
+
+\[
+\begin{aligned}
+  \Pr_{M,K}[A(E_k(M)) = f(M)] &\le_* \Pr[A(E_k(m_0)) = f(M)] + \negligible(n) \\
+  &= \Pr[A'(1^n) = f(M)] + \negligible(n)
+\end{aligned}
+\]
+
+Consider some message \(m'\) that maximizes the probability:
+
+\[
+  \Pr[A(E_k(M)) = f(M)] = \sum_{m' \in \Messagespace} \Pr[A(E_k(m')) = f(m') \mid M = m'] \cdot \Pr[M = m']
+\]
+
+Suppose towards negation that * is false.
+This implies that the average (the left side) is greater than the total.
+This implies the existence of a message for which it holds.
+Which means that we can break the encryption.
+
+% Then \(\exists m' \in \Messagespace\) such that:
+
+% \[
+%   \Pr[A(E_k(m')) = f(m')] > \Pr[A(E_k(m_0)) = f(m_0)] + \delta
+% \]
+
+% \marginpar{
+% This last part of the proof was a bit difficult to understand, and we will make another attempt to tighten it up after the break.
+% }
+
+Therefore, there exists a PPT \(B\) that violates indistinguishable encryption:
+
+\[
+B(c) = \begin{cases}
+1 & A(c) = f(m) \\
+0 & A(c) \ne f(m)
+\end{cases}
+\]
+
+This contradicts our assumption, so we have shown that * must be true.
+
+\section{Pseudorandom generators and secure encryption}
+
+Our goal in this section is to present encryption schemes that use keys that are much shorter, yet we consider them to be sufficiently secure.
+First, we need to define a random stream of bits.
+A random stream should satisfy at least (all these are computationally efficient tests):
+
+\begin{itemize}
+  \item each bit should be "almost" unbiased
+  \item fraction of 1s should be around 50\%
+  \item longest run of 1s should be \(O(\log n)\)
+  \item incompressible
+\end{itemize}
+
+There is a publicly available test suite called the "Die-Hard" that runs many different statistical tests.
+
+\subsection{Definition: Pseudorandom generators}
+
+\(G : \{0,1\}^* \to \{0, 1\}^*\) is a pseudorandom generator if:
+
+\begin{itemize}
+  \item \(G\) can be computed in polytime
+  \item \(|G(x)| = \ell(|x|)\) for \(\ell(n) > n\)
+  \item for any PPT \(D\) there exists \(\negligible \varepsilon\) such that:
+
+  \[
+    \Pr[D_{U_n} (G(U_n)) = 1] - \Pr_{U_{\ell(n)}}[D(U_{\ell(n)}) = 1] \le \varepsilon
+  \]
+\end{itemize}
+
+Note: we denote \(n\) uniformly random bits as \(U_n\).
+
+\paragraph{Proposition:}
+
+If \(G\) is a PRG, then \(\Pr[\text{fraction of 1s in \(G(U_n)\) is \(< 1/3\)}] < \negligible(n)\).
+
+Define a polytime \(D\):
+
+\[
+  D(y) = \begin{cases}
+    1 & \text{if fraction of 1s is \(< 1/3\)} \\
+    0 & \text{else}
+  \end{cases}
+\]
+
+\[
+\begin{aligned}
+  \Pr[D(U_{\ell(n)}) = 1] &\le \exp(-c \ell(n)) \\
+  \Pr[D(G(U_n) = 1] &\le \exp(-c \ell(n)) + \negligible(n) = \negligible(n)
+\end{aligned}
+\]
+
+\subsection{From PRG to Encryption}
+
+Given a PRG \(G\) build an encryption scheme \((G_{\mathrm{Enc}}, E, D)\):
+
+\begin{itemize}
+  \item the key \(k\) is a random seed for \(G\)
+  \item \(E_k(m)\) is defined as:
+  \begin{enumerate}
+    \item \(k' = G(k)\)
+    \item \(c = k' \xor m\)
+  \end{enumerate}
+\end{itemize}
+
+\subsection{Theorem: Stream ciphers are secure}
+
+If \(G\) is a PRG, then \((G_{\mathrm{Enc}, E, D})\) satisfies indistinguishable secrecy.
+
+Let \(A\) be any PPT algorithm and let \(m_0, m_1 \in \Messagespace\) be any two messages.
+
+Define 4 distributions:
+\marginpar{
+  This approach is common in modern crypto, where we design a scheme in an ideal world, and show that any attacks that can be done in the real world can be done in the ideal world, and then show that there are no attacks in the ideal world, such that the scheme is secure.
+}
+
+\begin{enumerate}
+  \item \(\mathrm{Real}_0 : E_k(m_0) = G(k) \xor m_0,\; k \gets U_n\)
+  \item \(\mathrm{Real}_1 : E_k(m_1) = G(k) \xor m_1,\; k \gets U_n\)
+  \item \(\mathrm{Ideal}_0 : k' \xor m_0,\; k' \gets U_{\ell(n)}\)
+  \item \(\mathrm{Ideal}_1 : k' \xor m_1,\; k' \gets U_{\ell(n)}\)
+\end{enumerate}
+
+where \(|k| = n\) and \(|m_0| = |k'| = \ell(n)\).
+
+We want to show that \(\mathrm{Real}_0\) and \(\mathrm{Real}_1\) are computationally indistinguishable.
+
+
+\(\mathrm{Real}_0 \equiv_c \mathrm{Ideal}_0\) because \(G\) is a PRG.
+\(\mathrm{Ideal}_0 \equiv \mathrm{Ideal}_1\) because one-time pads satisfy perfect secrecy.
+\(\mathrm{Ideal}_1 \equiv_c \mathrm{Real}_1\) because \(G\) is a PRG.
+
+However, we have not proven that computational indistinguishability is transitive.
+
+\paragraph{Lemma}
+
+If \(G\) is a PRG then for any PPT \(A\):
+
+\[
+  |\Pr[A(\mathrm{Real}_0) = 1] - \Pr[A(\mathrm{Ideal}_0) = 1]| < \negligible
+\]
+
+Suppose that there exists some PPT \(A\) for some nonnegligible \(\varepsilon\) such that:
+
+\[
+  |\Pr[A(\mathrm{Real}_0) = 1] - \Pr[A(\mathrm{Ideal}_0) = 1]| > \varepsilon
+\]
+
+Define \(D_{m_0}(y) = A(y \xor m_0)\).
+
+Then:
+
+\[
+\begin{aligned}
+  \Pr[D_{m_0}(U_\ell) = 1] &= \Pr[A(U_\ell \xor m_0) = 1] \\
+  &= \Pr[A(\mathrm{Ideal}_0) = 1] \\
+  &= \Pr[D_{m_0}(G(U_n)) = 1] \\
+  &= \Pr[A(G(U_n) \xor m_0) = 1] \\
+  &= \Pr[A(\mathrm{Real}_0) = 1] \\
+\end{aligned}
+\]
+
+\[
+  |\Pr[D_{m_0}(U_\ell) = 1] - \Pr[D_{m_0}(G(U_n)) = 1]| > \varepsilon
+\]
+
+Which contradicts the definition of a PRG, and therefore such an \(A\) cannot exist.
+
+\paragraph{Back to the proof}
+
+\[
+\begin{aligned}
+  & |\Pr[A(\mathrm{Real}_0) = 1] - \Pr[A(\mathrm{Real}_1) = 1]| \\
+  \le& |\Pr[A(\mathrm{Real}_0) = 1] - \Pr[A(\mathrm{Ideal}_0) = 1]| \\
+  +& |\Pr[A(\mathrm{Ideal}_0) = 1] - \Pr[A(\mathrm{Ideal}_1) = 1]| \\
+  +& |\Pr[A(\mathrm{Ideal}_1) = 1] - \Pr[A(\mathrm{Real}_1) = 1]|
+\end{aligned}
+\]
+
+which is \(\negligible + 0 + \negligible\).
+
+\subsection{Intuition}
+
+We've shown that PRGs are secure, and that one-time pads are secure.
+However, we haven't shown that a PRG even exists!
+We'll focus on one-way functions that imply the existence of PRGs.
+
+\paragraph{Informal definition}
+
+\(x \mapsto f(x)\) is easy, but \(f(x) \mapsto f^{-1}(f(x))\) is hard on average.
+Intuitively, we assume that such functions exist.
+
+Notably, a PRG must be a OWF:
+
+\[
+  x \mapsto G(x)
+\]
+
+which is easy, but this should be hard:
+
+\[
+  G(x) \mapsto x
+\]
+
+Notably, if we map \(2^n\) length keys into a space of \(2^{2n}\), the image is at most \(2^n\), which implies the existence of a naive decider that with likelihood \(1-2^{-n}\) is correct, which is our epsilon.
+
+\end{document}
