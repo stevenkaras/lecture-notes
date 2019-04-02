@@ -1,0 +1,243 @@
+\documentclass{idc_msc}
+
+\title{Natural Language Processing \\\large Lecture 4}
+\date{2019-04-02 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Kfir Bar\\Typeset by Steven Karas}
+
+\AtBeginDocument{\maketitle}
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+
+\usepackage{tikz-qtree}
+
+\begin{document}
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Natural Language Processing, taught by Dr. Kfir Bar at IDC Herzliyah in the spring semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Kfir Bar.
+
+\nocite{Jurafsky:2009:SLP:0131873210}
+\nocite{manning1999foundations}
+\nocite{DBLP:journals/corr/Goldberg15c}
+
+\section{Agenda}
+
+\begin{itemize}
+  \item POS tagging
+  \item Intro to machine learning
+\end{itemize}
+
+\section{Part of speech tagging}
+
+Given a sentence, we want to tag the part of speech for each token.
+
+\subsection{Named Entity Recognition}
+
+Marks named entities, such as people, places, and organizations.
+Some will use geopolitical entities to resolve the ambiguities between places and organizations (e.g. Israel).
+
+Unfortunately, HMM lacks necessary features to correctly handle this task.
+
+As an extension of this, structured information retrieval attempts to extract structured data from unstructured text.
+For example, "Trump met with Kim Jong Un on Tuesday".
+
+\subsubsection{IOB notation}
+
+\begin{itemize}
+  \item Inside - tags that are inside a sequence
+  \item Other - any other tags
+  \item Begin - the first tag in a sequence
+\end{itemize}
+
+\subsection{Shallow parsing/chunking}
+
+More complicated than part of speech tagging, this also splits text into phrases.
+
+\subsection{Hidden Markov Models}
+
+Consider observations into the model, such that given a sequence of observations \(o\) we model how they map to a sequence of states \(s\):
+
+\[
+\begin{aligned}
+  o &= (o_1, \ldots, o_T) \\
+  s &= (s_1, \ldots, s_T)
+\end{aligned}
+\]
+
+where the probability of seeing any particular state given an observation:
+
+\[
+  \Pr[s \mid o] =
+  \frac{\Pr[o \mid s] \Pr[s]}{\Pr[o]} =
+  \frac{\Pr[o \mid s] \Pr[s]}{\sum_{s'} \Pr[s', o]}
+\]
+
+Note that the denominator is constant with regards to \(s\), so we can ignore it.
+To maximize the probability for sequences observed in a corpus:
+
+\[
+  \max_{A,B} \frac{\Pr[o \mid s; A, B] \Pr[s; A, B]}{\sum_{s'} \Pr[s', o; A, B]}
+\]
+
+In order to find the most likely state \(\hat{s}\) given an observation \(o\):
+
+\[
+\begin{aligned}
+  \hat{s} &= \arg \max_s \Pr[s \mid o] \\
+  &= \arg \max_s \Pr[o \mid s] \Pr[s] \\
+  &= \arg \max_s \prod_{t = 1}^T B_{s_t o_t} \cdot A_{s_{t-1} s_t}
+\end{aligned}
+\]
+
+\subsubsection{HMM Inference}
+
+\[
+  \Pr[s, o] = \Pr[o \mid s; A, B] \Pr[s; A, B]
+\]
+\[
+  = \prod_{t=1}^T \Pr[s_t \mid s_{t-1}] \Pr[o_t \mid s_t]
+  = \prod_{t=1}^T A_{s_{t-1} s_t} B_{s_t o_t}
+\]
+
+\subsubsection{Viterbi decoding}
+
+The naive approach of finding the state sequence that maximizes the probabilities of the given observations takes exponential time.
+We use a dynamic programming approach instead:
+\footnote{The slides use \(x\) in place of \(s'\).}
+
+\[
+\begin{aligned}
+  \delta_j(t) &= \max_{s_1, \ldots, s_{t-1}} \Pr[s_1\ldots s_{t-1}, o_1 \ldots o_{t-1}, s_t = j, o_t] \\
+  \delta_j(t+1) &= \max_i \delta_i(t) a_{ij}b_{jo_{t+1}} \\
+  \delta_j(1) &= \pi_j b_{jo_1} \\
+  \psi_j(t+1) &= \arg\max_i \delta_i(t) a_{ij} b_{j o_{t+1}}
+\end{aligned}
+\]
+
+\begin{lstlisting}[title={Viterbi decoding}]
+Viterbi(O[1, T], M=(A,B,$\pi$)) // O = observations, M = model
+N = # of states
+// Initialization Step
+for n = 1 to N:
+  $\delta$(n, 1) = B[n, O[1]] * $\pi$[n]
+  $\psi$(n, 1) = 0
+// Iteration Step
+for t = 2 to T:
+  for n = 1 to N:
+    $\delta$(n, t) = B[n, O[t]] * $\max_{j = 1, \ldots, T}$ ($\delta$(j, t - 1) * A[j, n])
+    $\psi$(n, t) = index of j that gave the max above
+// Sequence recovery
+Seq(T) = n that maximizes $\delta$(n,T)
+for t = T - 1 downto 1:
+  Seq(t) = $\psi$(Seq(t+1), t+1)
+\end{lstlisting}
+
+\subsubsection{Training}
+
+Supervised learning requires tagged examples, but is just MLE.
+
+Unsupervised use of the model is possible, by using a lexicon and has several approaches (which approximate clustering or MLE).
+
+\subsubsection{Generalization}
+
+HMM inference is defined as:
+
+\[
+  \Pr[s, o] = \Pr[s] \Pr[o \mid s] = \prod_{t=1}^T \Pr[s_t \mid s_{t-1}] \Pr[o_t \mid s_t]
+\]
+
+We can rewrite this as:
+
+\[
+\begin{aligned}
+  \Pr[s, o] &= \prod_{t = 1}^T \exp\{\log \Pr[s_t \mid s_{t-1}] + \log \Pr[o_t \mid s_t]\} \\
+  &= \prod_{t=1}^T \exp \left\{\begin{matrix}
+    &\sum\limits_{i,j \in S} &\log \Pr[i \mid j] & 1_{s_t=i} 1_{s_{t-1} = j} \\
+    +& \sum\limits_{i\in S, o \in O} &\log \Pr[o \mid i] & 1_{o_t = o} 1_{s_t = i}
+  \end{matrix}\right\}
+\end{aligned}
+\]
+
+And then abstract the parameters and replace them with generic features where \(\theta_{i,j} = \log\Pr[i \mid j]\) and \(\mu_{o,i} = \log \Pr[o \mid i]\):
+
+\[
+\begin{aligned}
+  \Pr[s, o] &= \prod_{t=1}^T \exp \left\{\begin{matrix}
+    &\sum\limits_{i,j \in S} &\theta & 1_{s_t=i} 1_{s_{t-1} = j} \\
+    +& \sum\limits_{i\in S, o \in O} &\mu_{o,i} & 1_{o_t = o} 1_{s_t = i}
+  \end{matrix}\right\} \\
+  &= \prod_{t = 1}^T \exp\left\{\sum_{k} \theta_k f_k(s_t, s_{t-1}, o_t) \right\}
+\end{aligned}
+\]
+
+Where \(f\) is the feature vector.
+This is commonly called a log linear model.
+
+\paragraph{Feature Functions}
+
+There are many different features we can add. Here are some examples:
+
+\begin{itemize}
+  \item Starts with capital letter
+  \item All caps
+  \item previous POS
+\end{itemize}
+
+\subsection{Maximum Entropy Classifier}
+
+Also known as multinomial logistic regression or softmax classifier.
+Given a data point represented as a \(n\)-dimensional vector, we want to predict its class out of a closed set \(C\).
+
+\[
+  \hat{c} = \arg\max_{c \in C} \Pr[c \mid x] = \frac{\exp\left(\sum\limits_{i=0}^n \theta_{ci}f_i\right)}{\sum_{c' \in C} \exp \left(\sum\limits_{i = 0}^n \theta_{c'i} f_i\right)}
+\]
+
+To train the model parameters \(\theta\), we find the model that maximizes:
+
+\[
+\begin{aligned}
+  \prod_{i = 1}^m &= \Pr[x^{(i)} \mid c^{(i)}] \\
+  \log \prod_{i = 1}^m \Pr[x^{(i)} \mid c^{(i)}] &= \sum_{i=1}^m \log \Pr[x^{(i)} \mid c^{(i)}]
+\end{aligned}
+\]
+
+And then apply regularization to avoid overfitting:
+
+\[
+  \sum_{i = 1}^m \sum_{j = 1}^{n_j} \log\Pr[x_j^{(i)} \mid c_j^{(i)}] - \lambda \sum_{i,j} \theta_{ij}^2
+\]
+
+\subsection{Maximum Entropy Markov Model}
+
+We can mix the HMM with the ME approach to get:
+
+\[
+  \hat{s} = \arg\max_s \Pr[s \mid o] = \arg\max_s \prod_{t=1}^T \Pr[s_t \mid s_{t-1}, o_t]
+\]
+
+Which is trained by:
+
+\[
+  \Pr[s_t \mid s_{t-1}, o_t] = \frac{\exp\{\theta^T \cdot f(s_{1\ldots t-1, s_t, o, t})\}}{\sum_{s'}\exp\{\theta^T \cdot f(s_{1\ldots t-1, s', o, t})}
+\]
+
+I didn't have enough time to scribe the rest of the slides.
+
+\subsection{Model evaluation}
+
+\begin{itemize}
+  \item Leave out test set
+  \item k-fold cross validation\footnote{This doesn't work well when the training process takes a very long time, because it multiplies the training process by \(k\)}
+  \item leave-one-out-cross-validation (LOOCV)
+\end{itemize}
+
+POS tagging usually uses the Penn Wall Street Journal treebank.
+
+\section{Next Lecture}
+
+A makeup lecture will be held on Friday, April 5th at 845am.
+I will not be attending.
+The lecture next week will not be held due to national elections.
+The lecture the two weeks after that will not be held due to holidays.
+
+\end{document}
