@@ -1,0 +1,297 @@
+\documentclass{idc_msc}
+
+\title{Cryptography \\\large Lecture 6}
+\date{2019-04-30 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Alon Rosen\\Typeset by Steven Karas}
+
+\AtBeginDocument{\maketitle}
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+\let\E\relax
+\DeclareMathOperator*{\E}{\mathrm{E}}
+\DeclareMathOperator*{\xor}{\oplus}
+\let\NPclass\relax
+\newcommand{\NPclass}{\texorpdfstring{\ensuremath{\mathcal{NP}}}{NP}}
+\let\Pclass\relax
+\newcommand{\Pclass}{\texorpdfstring{\ensuremath{\mathcal{P}}}{P}}
+\let\Cipherspace\relax
+\newcommand{\Cipherspace}{\texorpdfstring{\ensuremath{\mathcal{C}}}{C}}
+\let\Messagespace\relax
+\newcommand{\Messagespace}{\texorpdfstring{\ensuremath{\mathcal{P}}}{P}}
+\let\Keyspace\relax
+\newcommand{\Keyspace}{\texorpdfstring{\ensuremath{\mathcal{K}}}{K}}
+\let\getsrandom\relax
+\newcommand{\getsrandom}{\ensuremath{\overset{R}{\gets}}}
+\let\ints\relax
+\newcommand{\ints}{\ensuremath{\mathbb{Z}}}
+\let\reals\relax
+\newcommand{\reals}{\ensuremath{\mathbb{Z}}}
+\let\negligible\relax
+\DeclareMathOperator*{\negligible}{\mathrm{neg}}
+\let\polynomial\relax
+\DeclareMathOperator*{\polynomial}{\mathrm{poly}}
+\let\divides\relax
+\newcommand{\divides}[1]{{}^{#1}\vert}
+\let\ndivides\relax
+\newcommand{\ndivides}[1]{{}^{#1}\not\vert}
+
+\begin{document}
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Cryptography, taught by Dr. Alon Rosen at IDC Herzliyah in the spring semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Alon Rosen.
+
+\nocite{Katz:2014:IMC:2700550}
+
+\section{Recap}
+
+\section{Agenda}
+
+\begin{itemize}
+  \item Chinese Remainder Theorem - Quadratic Residues
+\end{itemize}
+
+\section{Chinese Remainder Theorem - Quadratic Residues}
+
+Consider the field of \(\ints_N\), and the subset \(\ints_N^*\) of those elements with multiplicative inverses.
+The quadratic remainder \(\mathit{QR}_N \overset{\triangle}{=} \{x^2 \bmod N \mid x \in \ints_N^*\}\).
+
+\[
+  |\mathit{QR}_p| = \frac{|\ints_p^*|}{2} = \frac{(p-1)}{2}
+\]
+
+\[
+  N = pq \qquad |\mathit{QR}_N| = \frac{|\ints_N^*|}{4}
+\]
+
+\[
+  x \bmod N \longleftrightarrow (x \bmod p,\; x \bmod q)
+\]
+
+\section{Overview}
+
+Perfect security requires \( |\Keyspace| = |\Cipherspace| \).
+Computational security relaxes this to negligible probability.
+Pseudorandom generators provide computational security.
+One way functions provide pseudorandom generators.
+
+\section{Collections of OWFs}
+
+Define \(F\) as:
+
+\[
+  F = \{f_{\negligible} : D_{\mathrm{key}} \to D_{\mathrm{key}}\}
+\]
+
+\(F\) is a collection of OWFs if it satisfies the following conditions:
+
+\begin{enumerate}
+  \item there exists a PPT \(G(1^n)\) that outputs \(k \in \Keyspace\)
+  \item given \(k\) we can sample \(x \gets D_{k}\) in polytime
+  \item given \(k\) and \(x \in D_{k}\) we can evaluate \(f_{k}(x)\) in polytime
+  \item for any PPT \(A\) there is a negligible probability such that:
+  \[
+    \Pr_{k \getsrandom G(1^n)}[A(1^n, k, f_k(x)) \in f^{-1}_k (f_k(x))] \le \varepsilon(n)
+  \]
+\end{enumerate}
+
+\subsection{RSA as a OWP}
+
+\marginpar{
+  The invention of RSA was based on finding a one-way function, which they had issues with until a seder pesah when Rivest went home after and invented it. Adi Shamir has had visa issues with the US in recent years, to the point of having his visa denied when he was invited to give a talk at the NSA.
+
+  Notably, RSA were not the first to discover this, but the GCHQ classified the paper that discovered it first.
+}
+RSA is a collection of one way permutations.
+
+\[
+  k = \{(N, e) \mid N = p \cdot q \;\; p, q \text{ are primes} \;\; |p| = |q| \}
+\]
+\[
+  e \in \ints_{\varphi(N)}^*
+\]
+
+\subsubsection{Key generation}
+
+\begin{enumerate}
+  \item \(p, q \getsrandom \text{\(n\)-bit primes}\)
+  \item \(N = pq\)
+  \item \(e \getsrandom \ints_{\varphi(N)}^*\)
+  \item output \((N, e)\)
+\end{enumerate}
+
+\subsubsection{Encryption/Decryption}
+
+\[
+  f_{N,e} : \ints_{N}^* \to \ints_{N}^*
+\]
+
+\[
+  f_{N,e} (x) = x^{e} \mod N
+\]
+
+\subsubsection{Proof as a OWP}
+
+\[
+  \forall k = (N, e), \quad D_{k} = R_{k}
+\]
+
+To show \(f_{N,e}\) is a permutation, we give \(f^{-1}_{N, e}\).
+
+\( e \in \ints_{\varphi(N)}^* \), so \(\exists d\) such that \(ed \equiv 1 \mod \varphi(N)\) so \(y \mapsto y^d \mod N\) is the inverse map.
+
+\[
+  (f_{N, e}(x))^{d} \equiv (x^{e})^d \equiv x^{ed} \equiv x \mod N
+\]
+
+Note that:
+
+\[
+  x^{ed} = x^{k \varphi(N) + 1} = x^{\varphi(N)^k} \cdot x = 1^k \cdot x
+\]
+
+However, if it's easy to factorize integers, then it's easy to find \(\varphi(pq)\), and from there to find \(d\) given \(e\).
+As such, our proof that RSA is a collection of OWPs is contingent on that.
+Note that this means that factoring is at least as hard as RSA because RSA reduces to factoring.
+
+\subsection{Rabin's function}
+
+\marginpar{Rabin was one of the founding faculty members of IDC, and taught algorithms/automata for the first two years of the CS school.}
+\[
+  k = \{N \mid N = pq \;\; \ldots\}
+\]
+
+\[
+  f_{N} : \ints_{N}^* \to \ints_{N}^*
+\]
+
+\[
+  f_{N} (x) = x^2 \mod N
+\]
+
+Rabin is a collection of OWFs iff the factoring assumption holds.
+
+\subsubsection{Proof of equivalence to factoring}
+
+Assume towards contradiction that a PPT \(A\) exists that inverts \(f_N\) with probability \(\varepsilon(N)\).
+We will use \(A\) to factor \(N\) with probability \(\varepsilon(N) / 2\).
+
+\(A'(N)\) is defined as follows:
+
+\begin{enumerate}
+  \item \(x \getsrandom \ints_N^*\)
+  \item \(z = x^2 \mod N\)
+  \item \(y = A(z, N)\)
+  \item output \(\gcd(x-y, N)\)
+\end{enumerate}
+
+When \(A\) succeeds (with probability \(\varepsilon(N)\)):
+
+\[
+  (x+y)(x-y) = x^2 - y^2 \equiv 0 \mod N
+\]
+
+This implies that \(\divides{N} (x+y)(x-y)\).
+This means that one of the following is true:
+
+\begin{enumerate}
+  \item Both \(p,q\) are factors of \((x+y)\)
+  \item Both \(p,q\) are facotrs of \((x-y)\)
+  \item one is a factor of \((x+y)\) and the other of \((x-y)\).
+\end{enumerate}
+
+Hence, \(\gcd(x-y, N) \in \{P,Q\}\) provided that \(x \ne \pm y \mod N\).
+
+\subsubsection{Example}
+
+Let \(P=3,\; Q=5\). \(N=15\).
+\(\mathit{QR}_3 = \{1\}\), and \(\mathit{QR}_5 = \{1, 4\}\)
+
+\(\ints_{15}^* = \{1, 2, 4, 7, 8, 11, 13, 14\}\), and \(\varphi(15) = 8 = (3-1)(5-1)\).
+
+\(\mathit{QR}_{15} = \{1, 4\}\)
+
+Note that the mapping \(\ints_{15}^* \to \mathit{QR}_{15}\) pairs off \(x,y \in \ints_{15}^*\) such that \(x+y=N\), and \(f_N(x) = f_N(y)\).
+
+\section{Modular Exponentiation}
+
+Keys \(\Keyspace = \{(p,q) \mid \text{\(p\) is prime and \(g\) is a generator of \(\ints_{p}^*\)}\}\)
+
+% \subsection{Example}
+
+% \(p=7\). \(\ints_7^* = \{1,2,3,4,4,5,6\}\).
+
+% \(g=3\) is a generator as it yields all the values in \(\ints_7^*\).
+
+\marginpar{The fastest algorithm for this runs in \(2^{n^{1/3}}\), whereas the SOTA for elliptic curves runs in \((2^{n / 2})\), where \(n\) is the number of bits, not the size of the field.}
+Let \(f_{p,g} : \ints_{p-1} \to \ints_{p}^*\). Note that \(|\ints_{p-1}| = p-1 = |\ints_{p}^*|\).
+
+\[
+  f_{p,g}(x) = g^x \mod p
+\]
+
+\section{OWF implies PRG}
+
+Note that this is an OWF if RSA holds, yet it is not a PRG:
+
+\[
+  f_{N, e}' (x) = 1, x^{e} \mod N
+\]
+
+\section{Hard-core bits}
+
+Consider subset sum:
+
+\[f(x_1, \ldots, x_n, S) = (x_1, \ldots, x_n, \sum_{i\in S} x_i)\]
+
+% \paragraph{Breaking subset sum:}
+
+% \marginpar{A MSc student at Weizmann broke RC4 by finding that the 8th bit has a small bias. This was leveraged into a full attack on WEP encrypted WiFi.}
+% We can easily predict the first chunk of bits, as they are verbatim part of the output.
+% To predict the bits with probability \(3/4\), use the following function:
+
+% Given an OWF \(f\), and \(I,J \subseteq [n]\) such that \(|I| = |J| = n/2\), define \(g\):
+
+% \[
+%   g(x,I,J) = (f(x_{I \cap J}), x_{\bar{I} \cup \bar{J}})
+% \]
+
+% If \(f\) is a OWF, then \(g\) is a OWF.
+% Every bit can be guessed with probability \(3/4\).
+
+a function \(b: \{0,1\}^* \to \{0,1\}\) is a hardcore bit for a given OWF f if:
+
+\begin{enumerate}
+  \item \(b\) is polytime computable
+  \item any PPT \(A\) has a negligible \(\varepsilon\) such that:
+  \[
+  \Pr_{x}[A(f(x)) = b(x)] \le \frac{1}{2} + \varepsilon
+  \]
+\end{enumerate}
+
+\paragraph{Example of real hardcore bits:}
+
+\begin{itemize}
+  \item RSA: \(\mathit{lsb}_{N,e} : \ints_{N}^* \to \{0,1\}\)
+  \item RSA: \(\mathit{half}_N(x) = \begin{cases}0 & 0 \le x \le N/2 \\ 1 & \text{else}\end{cases}\)
+  \item Rabin: \(\mathit{lsb}_{N} : \ints_{N}^* \to \{0,1\}\)
+  \item modexp: \(\mathit{half}_{p-1}(x) \qquad g^x \mod p\)
+\end{itemize}
+
+\subsection{Goldreich-Levin}
+
+Let \(f\) be any OWF.
+Define \(f'(x, r) = f(x), r\).
+Then \(<x,r> \mod 2\) is a hardcore bit for \(f'\), where:
+
+\[
+  <x,r> = \sum_{i=1}^n x_ir_i \mod 2
+\]
+
+This is equivalent to the Hadamard local decoding code.
+
+\section{Next lecture}
+
+Next weeks lecture will be cut short due to Erev Yom HaZikaron.
+
+\end{document}
