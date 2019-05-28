@@ -1,0 +1,279 @@
+\documentclass{idc_msc}
+
+\title{Cryptography \\\large Lecture 10}
+\date{2019-05-28 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Alon Rosen\\Typeset by Steven Karas}
+
+\AtBeginDocument{\maketitle}
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+\let\E\relax
+\DeclareMathOperator*{\E}{\mathrm{E}}
+\DeclareMathOperator*{\xor}{\oplus}
+\let\NPclass\relax
+\newcommand{\NPclass}{\texorpdfstring{\ensuremath{\mathcal{NP}}}{NP}}
+\let\Pclass\relax
+\newcommand{\Pclass}{\texorpdfstring{\ensuremath{\mathcal{P}}}{P}}
+\let\Cipherspace\relax
+\newcommand{\Cipherspace}{\texorpdfstring{\ensuremath{\mathcal{C}}}{C}}
+\let\Messagespace\relax
+\newcommand{\Messagespace}{\texorpdfstring{\ensuremath{\mathcal{P}}}{P}}
+\let\Keyspace\relax
+\newcommand{\Keyspace}{\texorpdfstring{\ensuremath{\mathcal{K}}}{K}}
+\let\getsrandom\relax
+\newcommand{\getsrandom}{\ensuremath{\overset{R}{\gets}}}
+\let\ints\relax
+\newcommand{\ints}{\ensuremath{\mathbb{Z}}}
+\let\reals\relax
+\newcommand{\reals}{\ensuremath{\mathbb{Z}}}
+\let\negligible\relax
+\DeclareMathOperator*{\negligible}{\mathrm{neg}}
+\let\polynomial\relax
+\DeclareMathOperator*{\polynomial}{\mathrm{poly}}
+\let\divides\relax
+\newcommand{\divides}[1]{{}^{#1}\vert}
+\let\ndivides\relax
+\newcommand{\ndivides}[1]{{}^{#1}\not\vert}
+
+\begin{document}
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Cryptography, taught by Dr. Alon Rosen at IDC Herzliyah in the spring semester of 2018/2019.
+Sections may be based on the lecture slides prepared by Dr. Alon Rosen.
+
+\nocite{Katz:2014:IMC:2700550}
+
+\section{Recap}
+
+I was not present in the last three lectures due to scheduling conflicts.
+
+\section{Agenda}
+
+\begin{itemize}
+  \item MAC
+\end{itemize}
+
+\section{Message Authentication (MAC)}
+
+Note that encryption in and of itself does not provide authentication.
+The rough idea is to attach a "tag" to the message to prove that the message is authentic.
+MAC provides the symmetric encryption equivalent of asymmetric signatures.
+Note that asymmetric signatures can be verified by anyone, whereas MACs can only be authenticated by those who know the key.
+
+For example if Alice wants to send a message to Bob where they both have a shared key \(k\), Alice can send \((m, t)_k\) to Bob who can verify that the message tag corresponds to the key \(k\).
+The security of this authentication is limited by knowledge of the key.
+
+\subsection{Definition}
+
+A MAC consists of three algorithms \((G, M, V)\):
+
+\begin{enumerate}
+  \item A key generation algorithm \(k \getsrandom G(1^n)\)
+  \item A tagging algorithm \(t \getsrandom M_k(m)\)
+  \item A verification algorithm \(V_k(m, t) \in \{\mathrm{ACC}, \mathrm{REJ}\}\)
+
+  % note that a verifier that always accepts is syntactically correct
+  \[
+  \forall m \; V_k(m, M_k(m)) = \mathrm{ACC}
+  \]
+\end{enumerate}
+
+% These definitions were presented by McCallister, Iverson, and Rivest in 1984
+% Between Diffie-Hellman and then, conventional wisdom was that signatures cannot possibly be secure.
+
+\paragraph{Adversarial Model}
+
+Given an adversary \(F\), their goal is to produce a valid tag for message they have never seen a valid tag for.
+Assume that \(F\) can request from an oracle valid tags \(t_i = M_k(m_i)\) for any number of messages \(m_i\).
+We say that \(F\) forges \(V_k(m, M_k(m)) = \mathrm{ACC}\) for some \(m \ne m_i \forall i\).
+
+\subsection{Existential unforgeability under adaptive chosen message attack}
+
+A MAC \((G,M,V)\) is secure if for any PPT \(F\):
+
+\[
+  \exists \negligible \varepsilon : \Pr\left[ F^{M_k(\cdot)}(1^n) \; \textrm{forges} \right] \le \varepsilon
+\]
+
+% if we use a serial number for subsequent tags of a message m, then the definitions are largely the same, but M_k needs to drag the state along with it.
+
+\subsection{Fixed length MAC}
+
+\(M_k(m) = f_k(m)\) where \(f_k\) is a PRF (\(F_n=\{f_k:\{0,1\}^n \to \{0,1\}^n\}\)), where \(V_k(m, t) \in \{\mathrm{ACC}, \mathrm{REJ}\}\).
+
+If \(F = U_n F_n\) is a PRF family then the MAC described above is secure.
+Let \(F\) be a PPT forger.
+
+\[
+  \Pr[F^{R}\; \textrm{forges}] \le 2^{-n}
+\]
+\[
+  \Pr[F^{f_k} \; \textrm{forges}] \le 2^{-n} + \negligible
+\]
+
+If such a forger were to exist, then it would be able to decide between truly random and pseudorandom.
+
+\subsection{Arbitrary length MAC}
+
+Given a \((G,M,V)\) that is a fixed length MAC for a blocks of size \(n\).
+
+\paragraph{Attempt 1:}
+
+\[
+  M'_k(m_1,\ldots,m_d) = M_k(m_1 \xor \cdots \xor m_d)
+\]
+
+However, this is equivalent to:
+
+\[
+  M'_k(m_2,m_1, \ldots, m_d)
+\]
+
+which is a message that was never sent.
+
+\paragraph{Attempt 2:}
+
+\[
+  M'_k(m_1,\ldots,m_d) = (M_k(m_1), \ldots, M_k(m_d))
+\]
+
+However, this is also insecure because we can construct:
+
+\[
+  M'_k(m_2, m_1,\ldots,m_d) = (M_k(m_2), M_k(m_1), \ldots, M_k(m_d))
+\]
+
+\paragraph{Attempt 3:}
+
+\[
+  M'_k(m_1, \ldots, m_d) = M_k(m_1, 1), \ldots, M_k(m_d, d)
+\]
+
+Where each block \(m_1\) has size \(n/2\).
+
+However, if we take two different messages from the oracle, we can mix and match between the messages to construct a valid tag.
+
+\paragraph{Attempt 4:}
+
+Consider \(M'_k(m)\) where \(m = m_1, \ldots, m_d\) where \(m_i \in \{0,1\}^{n/3}\).
+Let \(r \getsrandom \{0, 1\}^{n/3}\).
+Let \(t_i \gets M_k(m_i, i, d, r)\)
+Output \(r,t_1, \ldots, t_d\)
+
+Let \(V'_k(r,t_1, \ldots, t_d) = \mathrm{ACC}\) iff \(\forall i \in \{1, \ldots, d\}\) it holds that \(V_k((m_i, i, d, r), t_i) = \mathrm{ACC}\).
+
+If \((G, M, V)\) is secure then \((G', M', V')\) is secure.
+Suppose that \(F'\) is a PPT that forges \((G', M', V')\) with probability \(\varepsilon\).
+\(F'\) gets MAC for polynomially many messages.
+If \(F'\) is successful then \(m=m_1, \ldots, m_d\), \(t= (r, t_1, \ldots, t_d)\).
+
+\[
+  \forall i \;\; V_k((m_i, i, d, r), t_i) = \mathrm{ACC}
+\]
+
+We have two cases.
+In the first case \(t = (r, t_1, \ldots, t_d)\) contains a "new" \(r\).
+This means that \((m_i, i, d, r)\) was never previously authenticated with \(M_k\).
+In the second case \(t\) does not contain a "new" \(r\).
+Either \(r\) has appeared in only one previous MAC, in which case it would be equivalent to breaking \(M_k\).
+The other possibility is that \(r\) has appeared in more than one previous MAC, which happens with probability \(q^2/ 2^{n/3}\).
+
+\paragraph{CBC MAC}
+
+size of tag is \(n\) (not \(dn + n/3\)).
+Let \(F = \{f_k : \{0, 1\}^n \to \{0, 1\}^n\}\) be a family of PRFs.
+Let \(M_k(m_1, \ldots, m_d) = y_d\) where \(y_i = f_k(m_i \xor y_{i-1})\) and \(y_0 = 0^n\).
+
+CBC MAC is secure for \(m \in \{0, 1\}^{dn}\).
+
+\section{Digital Signatures}
+
+\[
+  m^{sk \;A^{vk}} \overset{m,S_{sk}(m)}{\longrightarrow}^{B} V_{vk}(m,S_{sk}(m)) = \mathrm{ACC}
+\]
+
+which means that Alice signs a message using a signing key \(sk\), sends that signature and the message to Bob, who knows the corresponding verification key \(vk\) who can then verify that the message was signed by \(sk\).
+
+This is publicly verifiable (\(vk\)) is not secret.
+It is transferable.
+It is also non-repudiable.
+
+\subsection{Syntax}
+
+A digital signature consists of three algorithms \((G,S,V)\).
+
+\begin{enumerate}
+  \item A key generator \((vk, sk) \getsrandom G(1^n)\)
+  \item A signature algorithm \(\sigma \getsrandom S_{sk}(m)\)
+  \item a verification algorithm \(V_{vk}(m,\sigma) \in \{\mathrm{ACC}, \mathrm{REJ}\}\)
+\end{enumerate}
+
+We require that \(V_{vk}(m, S_{sk}(m)) = \mathrm{ACC}\) for any message \(m\).
+
+Note that the sender is the one who needs \(sk\), whereas in the PKE it is the receiver.
+However, these are \textbf{not} the dual of PKE.
+Decryption does not imply signing; notably, \(x^2 \bmod n\).
+Randomization is not necessary.
+
+Security is defined exactly as in MACs, but where the adversary already has the verification key.
+
+\subsection{Applications}
+
+\begin{enumerate}
+  \item Public key infrastructure requires trust roots who certify that a given key belongs to an entity.
+  For example, Verisign will provide Alice with a certificate that her keys are actually hers.
+  When someone begins communicating with her, they can verify that the party on the other end actually has Alice's keys, assuming they trust Verisign.
+  \item Blockchains are built on the concept that a transfer is signed by the originating keypair that something has been transferred.
+\end{enumerate}
+
+\subsection{Example constructions}
+
+\paragraph{Attempt 1}
+
+Let \(f\) be a OWF such that:
+
+\begin{enumerate}
+  \item \(y=f(x)\) where \(sk = x\), \(vk = y\), and \(x \getsrandom \{0,1\}^n\)
+  \item \(S_{sk}(m) = x\)
+  \item \(V_{vk}(m,\sigma) = 1 \Leftrightarrow f(\sigma) = y\)
+\end{enumerate}
+
+\paragraph{Attempt 2}
+
+Let \(F = \{f_i : D_i \to D_i\}\) be a family of TDPs\footnote{Trap-door-permutations}.
+
+\begin{enumerate}
+  \item \(vk = i\), \(sk = t\)
+  \item \(S_{sk}(m) = f^{-1}(m)\)
+  \item \(V_{vk}(m, \sigma)\) checks that \(f_i(\sigma) = m\)
+\end{enumerate}
+
+However, we can attack this without seeing any messages by showing that for \(m=1\), \(\sigma=1\) if we choose RSA as the trapdoor function.
+Another attack is to choose some signature \(\sigma \in D\) and then compute the corresponding message \(m = f_i(\sigma)\).
+
+\paragraph{Attempt 3}
+
+Textbook RSA.
+
+\begin{enumerate}
+  \item \(vk = (N, d)\), \(sk = (N, e)\)
+  \item \(S_{sk}(m) = m^e \mod N\)
+  \item \(V_{pk}(m, \sigma) = 1 \Leftrightarrow \sigma^d = m \mod N\)
+\end{enumerate}
+
+However, note that \((m \cdot m')^e = m^e m'^e \mod N\). To forge, we just need to ask for \(\sigma_1, \sigma_2\) corresponding to \(m_1, m_2\) where \(m_2 = m_1^{-1} \cdot m \mod N\).
+\(\sigma_1 \cdot \sigma_2\) is a valid signature on \(m_1 \cdot m_2 = m_1 \cdot m_1^{-1} \cdot m = m\).
+
+\paragraph{Attempt 4}
+
+As a variation on this, we can use what is called a full domain hash, which requires a hash function \(H\) that breaks the homomorphisms such as \((m \cdot m')^e = m^e m'^e \mod N\).
+
+\begin{enumerate}
+  \item \(vk = (N, d)\), \(sk = (N, e)\)
+  \item \(S_{sk}(m) = H(m)^e \mod N\)
+  \item \(V_{pk}(m, \sigma) = 1 \Leftrightarrow \sigma^d = m \mod N\)
+\end{enumerate}
+
+\section{Next lecture}
+
+\end{document}
