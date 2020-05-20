@@ -1,0 +1,149 @@
+\documentclass{idc_msc}
+
+\title{Introduction to Property Testing \\\large Lecture 4}
+\date{2020-05-13 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Reut Levi\\Typeset by Steven Karas}
+
+\AtBeginDocument{\maketitle}
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+
+\newcommand\defeq{\stackrel{\mathclap{\normalfont\mbox{def}}}{=}}
+
+\begin{document}
+
+\nocite{goldreich2017introduction}
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Introduction to Property Testing, taught by Dr. Reut Levi at IDC Herzliyah in the spring semester of 2019/2020.
+Sections may be based on the lecture slides prepared by Dr. Reut Levi.
+
+\section{Agenda}
+
+  \begin{itemize}
+    \item Finishing group homomorphism
+    \item Monotonicity
+  \end{itemize}
+
+
+\section{Group Homomorphism}
+
+\(\phi\) is a homomorphism.
+
+For \(x, y, r \in G\), let \(E_{x,y,r}\) be the event that the following holds:
+
+\begin{enumerate}
+  \item \(\phi(x) = f(x+r) - f(r) \quad( = Q_r(x))\)
+  \item \(\phi(y) = f(r) - f(-y+r) \quad (= \phi_{-y+r}(x))\)
+  \item \(\phi(x+y) = f(x+r) - f(-y+r) \quad (=\phi_{-y+r}(x+y))\)
+\end{enumerate}
+
+Thus, if \(E_{x,y,r}\) occurs, then \(\phi(x+y) = \phi(x) + \phi(y)\).
+Fixing \(x, y\) and looking for some \(r\):
+
+Recall that claim 2 from last week was that for every \(x \in G\) it holds that:
+
+\[
+  \Pr_{y \in G} \left[Q_y(x) = \phi(x)\right] \ge 1 - 2\rho
+\]
+
+By claim 2 it holds that \(\Pr_{r} [\lnot E_{x,y,r}.1] \le 2\rho\) and so is true for \(E_{x,y,r}.2\) and \(E_{x,y,r}.3\) where \(s = -y + r\):
+
+\[
+  \begin{aligned}
+  \Pr_r [\phi(y) \ne f(r) - f(-y+r)] &= \Pr_s [ \phi(y) \ne f(y + s) - f(s)] \\
+  \Pr_r [\phi(x + y) \ne f(x+y) - f(-y+r)] &= \Pr_s [ \phi(x +y) \ne f(x + y + s) - f(s)]
+  \end{aligned}
+\]
+
+Therefore:
+
+\[
+  \Pr_r [ \lnot E_{x,y,r} ] \le 6 \rho < 1
+\]
+
+This implies that \(\exists r\) such that all three conditions hold and thus \(\phi(x+y) = \phi(x) + \phi(y)\) holds true.
+
+\clearpage
+\section{Testing monotonicity}
+
+We say that \(f : D \to R\) is monotone if for every \(x, y \in D\) if \(x < y\) (according to the partial order on \(D\)), then \(f(x) \le f(y)\) (according to the total order on \(R\)).
+
+\subsection{Boolean hypercube}
+
+Boolean functions over the boolean hypercube \(\{0, 1\}^l\) as defined as \(f : \{0, 1\}^n \to \{0, 1\}\) if for every \(x < y\) in \(\{0, 1\}^l\) it holds that \(f(x) \le f(y)\) where \(x_1, \ldots, x_l \le y_1, \ldots, y_l\) iff \(x_i \le y_i\) for every \(i \in [l]\) and \(x_1 \ldots x_l = y_1 \ldots y_l\) iff \(x_i = y_i\) for all \(i \in [l]\).
+
+We may think of the boolean hypercube as a directed graph induced by this partial order.
+
+\paragraph{Edge test algorithm:}
+
+Select u.a.r. \(v \in \{0, 1\}^l\) and \(i \in [l]\).
+Query \(f(v)\) and \(f(v')\) where \(v'\) is \(v\) with the \(i\)-th bit flipped.
+
+This algorithm is a one sided POT for monotonicity with detection probability \(\delta / l\) where \(\delta\) is the distance from monotonicity.
+
+Analysis is tight: for every \(\alpha \in (\exp(-\Omega(l)), 0.5)\), \(\exists f : \{0, 1\}^l \to \{0, 1\}\) at distance \(\delta \in [\alpha, 2\alpha]\) from monotonicity such that our algorithm rejects with probability \(\le \frac{2\delta}{l}\).
+% I missed the exact implication here, but I'll fill it in if I rewatch the lecture.
+For example, consider \(f(x) = \overline{x_1}\) which has distance \(0.5\) and rejection probability \(\frac{1}{l}\).
+
+\paragraph{Proof:}
+
+Always accepts monotone functions.
+Proof by contrapositive: \(f\) accepted with probability \(\ge 1 - \rho\) thus \(f\) is \(l\rho\)-close to monotone.
+
+We say that \(f\) is monotone in direction \(i\) if for every \(v' \in \{0,1\}^{i-1}\) and \(v'' \in \{0,1\}^l-i\) it holds that \(f(v' 0 v'') \le f(v' 1 v'')\).
+
+We make \(f\) monotone by applying the switching operator \(s_i\).
+\(s_i\) makes \(f\) monotone in direction \(i\) by:
+
+\begin{enumerate}
+  \item if \(f(v'0v'') \le f(v'1v'')\) - makes no change
+  \item if \(f(v'0v'') > f(v'1v'')\) - then switch \(f(v'0v'')\) and \(f(v'1v'')\): \(s_i(f)(v'0v'') = f(v'1v''),\;s_i(f)(v'1v'') = f(v'0v'')\)
+\end{enumerate}
+
+Consider the sequence of functions \(f_0, \ldots, f_l\) such that \(f_0 = f\) and \(f_i = s_i(f_{i-1})\) for \(i = 1, \ldots, l\).
+We'll see that \(f_l\) is monotone and that \(\sum_{i \in [l]} \delta(f_i, f_{i-1}) \le l \rho\)
+
+We say that a directed edge \(v'0v'', v'1v''\) (where \(v' \in \{0, 1\}^{i-1} ,\; v'' \in \{0,1\}^{l-i}\)) is a violating edge in direction \(i\) if \(f(v'0v'') > f(v'1v'')\).
+We denote as \(V_i(f)\) as the set of violating edges of \(f\) in direction \(i\).
+
+We claim that for \(i, j \in [l]\), it holds that \(|V_j(s_i(f))| \le |V_j(f)|\).
+This means that if \(f\) is monotone in direction \(j\), then so is \(s_i(f)\), it holds that \(|V_j(f)| = 0\).
+
+If \(i = j\) then it's trivial since \(V_i(s_i(f)) = \emptyset\).
+If \(i \ne j\) then we must restrict the other \(l-2\) coordinates and consider the effect of fixing the \(i\)-th direction on the violations in the \(j\)-th direction.
+
+The remainder of the proof was graphical, but the gist is that in cases where we make it worse, the number of violations never increases (basically only in cases that we haven't run \(s_j\) yet).
+
+\paragraph{Corollary 1:}
+
+\(\forall i \, f_i\) is monotone in each direction \(j \le i\), and also that \(f_l\) is monotone.
+
+\(\forall i, j \in [l]\) it holds that \(|V_j(f_i)| \le |V_j(f)|\). Proof follows by induction.
+
+\[
+\rho = \frac{2 \sum_{i \in [l]} |V_i(f)|}{l \cdot 2^{l}}
+\]
+
+\[
+  \delta(f_i, f_{i - 1}) = \frac{2 |V_i(f_{i-1}|}{2^l}
+\]
+
+By corollary 1 and the above facts, it follows that:
+
+\[
+  \begin{aligned}
+  \delta(f, f_l) &\le \sum_{i \in [l]} \delta(f_{i-1}, f_i) \\
+  &= \sum_{i \in [l]} \frac{2 |V_i(f_{i-1})|}{2^l} \\
+  &\le \sum_{i \in [l]} \ldots
+  \end{aligned}
+\]
+
+
+
+\section{Homework}
+
+Assignment \#2: exercises 4.2, 4.3
+
+
+\end{document}
