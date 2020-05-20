@@ -7,8 +7,8 @@
 %=====================================================================
 % Identification
 %=====================================================================
-\def\fileversion{1.0}
-\def\filedate{2017/04/19}
+\def\fileversion{1.1}
+\def\filedate{2020/05/15}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{idc_msc}[\filedate\space Version \fileversion\space by
   Steven Karas]
@@ -35,6 +35,9 @@
 \RequirePackage{listings}
 \RequirePackage{accsupp}
 \RequirePackage[table]{xcolor}
+\RequirePackage{framed}
+\RequirePackage{etoolbox}
+\RequirePackage{xargs}
 
 \inputencoding{utf8}
 
@@ -78,6 +81,9 @@
 \newcommand{\underrel}[2]{\mathrel{\mathop{#2}\limits_{#1}}} % e.g. \underrel{x}{explanation}
 \newcommand{\T}{{\mathpalette\raiseT\intercal}} % e.g. F^\T
 \newcommand{\raiseT}[2]{\setbox0\hbox{$#1{#2}$}\raise\dp0\box0}
+\newcommand{\NPclass}{\texorpdfstring{\ensuremath{\mathcal{NP}}}{NP}}
+\newcommand{\Pclass}{\texorpdfstring{\ensuremath{\mathcal{P}}}{P}}
+\DeclareMathOperator*{\xor}{\oplus}
 
 % Statistics
 \newcommand{\mean}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
@@ -131,3 +137,14 @@
 % so it needs to be down here
 \RequirePackage{enumitem}
 \setlist{noitemsep}
+
+% style block quotes with a vertical bar to their left
+\AtBeginEnvironment{quote}{\begin{leftbar}}
+\AtEndEnvironment{quote}{\end{leftbar}}
+
+% make those quote vertical bars thinner
+\renewenvironmentx{leftbar}[2][1=0.5pt, 2=5pt]{\def\FrameCommand{\vrule width #1 \hspace{#2}}\MakeFramed {\advance\hsize-\width \FrameRestore}}{\endMakeFramed}
+
+% number equations by section number
+\renewcommand\theequation{\thesection.\arabic{equation}}
+\numberwithin{equation}{section}
