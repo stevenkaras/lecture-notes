@@ -1,0 +1,115 @@
+\documentclass{idc_msc}
+
+\title{Introduction to Property Testing \\\large Lecture 6}
+\date{2020-05-27 \\ Last edited \currenttime\ \today}
+\author{Lecture by Dr. Reut Levi\\Typeset by Steven Karas}
+
+\AtBeginDocument{\maketitle}
+\AtEndDocument{\vfill\bibliographystyle{plain}\bibliography{../biblio}{}}
+
+\let\defeq\relax
+\newcommand\defeq{\stackrel{\mathclap{\normalfont\mbox{def}}}{=}}
+
+\begin{document}
+
+\nocite{goldreich2017introduction}
+
+\paragraph{Disclaimer}
+
+These notes are based on the lectures for the course Introduction to Property Testing, taught by Dr. Reut Levi at IDC Herzliyah in the spring semester of 2019/2020.
+Sections may be based on the lecture slides prepared by Dr. Reut Levi.
+
+\section{Agenda}
+
+  \begin{itemize}
+    \item Recap of last week
+  \end{itemize}
+
+An extension was granted for homework \#2 until Sunday.
+The next homework will be due in 2 weeks from today: exercises 8.5 and 8.7.
+
+\section{Testing Bipartite-ness}
+
+We define that an edge disturbs \((u_1, u_2)\) if both endpoints are in the same set \(N(u_i)\) for some \(i \in {1,2}\).
+
+\paragraph{Claim 2}
+
+For any good \(U\) and any 2-partition of \(U\) at least \(\frac{\varepsilon k^2}{6}\) edges disturb \((u_1, u_2)\).
+
+\(G\) is \(\varepsilon\)-far from bipartite thus each 2-partition of \([k]\) has at elast \(\frac{\varepsilon k^2}{6}\) violating edges.
+This is also true for \(V'_1 = N(U_2)\) and \(V'_2 = [k] \setminus V'_1\)
+
+% a diagram illustrating the partition of u1, u2
+
+There is a bound on the number of edges that have an endpoint that is not in \(N(u)\):
+the number of edges incident to high-degree vertices not in \(N(u)\).
+Recall that \(u\) is good.
+\(u\) is good defined such that all but \(\le \frac{\varepsilon k}{6}\) high degree vertices are in \(N(u)\).
+
+% a diagram illustrating this concept
+
+The number of edges incident at vertices that are not high degree \(\le k \frac{\varepsilon k}{6}\).
+Thus, \(\le \frac{\varepsilon k^2}{3}\) edges that do not have both endpoints in \(N(u)\).
+Thus, \(\ge \frac{\varepsilon k^2}{2} - \frac{\varepsilon k^2}{3} = \frac{\varepsilon k^2}{6}\) violating edges with respect to \((v'_1, v'_2)\) with both endpoints in \(N(u)\).
+These edges disturb \((u_1, u_2)\) since \(V'_1 \cap N(u) = N(u_2)\) and \(V'_2 \cap N(u) \subseteq N(u_1)\).
+
+Proof follows from \(G([R])\) is bipartite only if either:
+
+\begin{enumerate}
+  \item \(u\) is not good
+  \item \(u\) is good but there exists a 2-partition of \(u_1\) such that none of the edges disturbing it appear in \(G([R])\).
+\end{enumerate}
+
+By claim 1, \(\Pr[\textrm{Event 1}] \le 1/6\), and \(\Pr[\textrm{Event 2}] \le \Pr[\exists \textrm{ 2-partition of \(u\) such that none of the disturbing edges are in \(S\times S\)}]\).
+By claim 2, each 2-partition of \(u\) has \(\ge \frac{\varepsilon k^2}{6}\) disturbing edges.
+
+Pair the \(m\) vertices of \(S\) into \(\frac{m}{2}\) pairs.
+By union bound over \(2^t\) 2-partitions of \(u\):
+
+\[
+\Pr[\textrm{Event 2}] \le 2^t \cdot \left(1 - \frac{\varepsilon k^2 / 6}{k^2 / 2}\right)^{m/2} < \frac{1}{6}
+\]
+
+because \(m = \Omega(t / \varepsilon)\) and \(\left(1 - \frac{1}{x}\right)^x < \frac{1}{e}\).
+
+% the remainder of this portion was a visual explanation using a drawing of a violating pair
+
+\section{External Graph Theory}
+
+This theory concerns itself with the effects of local properties on global properties of graphs.
+
+\subsection{Testing subgraph freeness}
+
+We will focus on 3-clique freeness (triangles).
+
+\subsubsection{Szemer\'edi's regularity lemma}
+
+Notation:
+
+If \(A, B\) are disjoint we denote \(E(A, B)\) as the edges with one endpoint in \(A\) and the other in \(B\).
+If \(A, B \subseteq V\) are disjoint and nonempty, we define the edge-density of \((A, B)\) as \(d(A, B) \defeq \frac{E(A,B)}{|A|\cdot |B|}\).
+
+We say that \((A,B)\) is \(\gamma\)-regular if for every \(A' \subseteq A; B' \subseteq B\) such that \(|A'| \ge \gamma |A|\) and \(|B'| \ge \gamma |B|\) it holds that \(|d(A',B')-d(A,B)| \le \gamma\).
+
+% a diagram showing that A, B are disjoint and A', B' are subsets.
+
+For every \(l \in \mathbb{N}\) and \(\gamma > 0\), there exists \(T = T(l, \gamma)\) such that for every sufficiently large \(G = (V,E)\), there exists \(t = [l, T]\) and \(t\)-partition of \(V\), denoted \(V_1, \ldots, V_t\) such that:
+
+\begin{enumerate}
+  \item for all \(i \in [t]\), it holds that:
+  \[
+  \left\lfloor \frac{|V|}{t} \right\rfloor \le |V_i| \le \left\lceil \frac{|V|}{t} \right\rceil
+  \]
+
+  \item for all but at most \(\gamma\)-fraction of \(\{i,j\} \in \binom{[t]}{2}\), it holds that \(v_i, v_j\) is \(\gamma\)-regular.
+\end{enumerate}
+
+\paragraph{Theorem:}
+
+There are at least \(\rho(\varepsilon) \cdot k^3\) triangles in a graph which is \(\varepsilon\)-far from being triangle free, where \(k\) is the number of vertices in the graph.
+
+\section{Next week}
+
+We will prove this theorem next week.
+
+\end{document}
